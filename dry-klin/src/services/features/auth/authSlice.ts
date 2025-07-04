@@ -1,46 +1,55 @@
-import { createAsyncThunkWithHandler } from "@/services/api/apiHandler";
-import { ILogin } from "@/types/auth_types";
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import authService from "./authService";
+import { ILogin } from "@/types/auth_types";
 
-const token = localStorage.getItem("DryKlinAccessToken");
-const user = JSON.parse(localStorage.getItem("DryKlinUser") ?? "null");
+// Get user from localStorage
+const user = localStorage.getItem("DryKlinUser");
 
 const initialState = {
-  token: token || null,
-  user: user || null,
+  user: user ? JSON.parse(user) : null,
+  token: localStorage.getItem("DryKlinAccessToken"),
   isLoading: false,
-  message: "",
   isSuccess: false,
   isError: false,
+  message: "",
 };
 
-export const LoginUser = createAsyncThunkWithHandler(
+// Login user
+export const LoginUser = createAsyncThunk(
   "auth/login",
-  async (user: ILogin) => {
-    return await authService.Login(user);
+  async (user: ILogin, thunkAPI) => {
+    try {
+      return await authService.Login(user);
+    } catch (error: any) {
+      const message = error.message || "Something went wrong";
+      return thunkAPI.rejectWithValue(message);
+    }
   }
 );
 
-export const Register = createAsyncThunkWithHandler(
-  "auth/login",
-  async (user: ILogin, _) => {
-    return await authService.Login(user);
+// Verify OTP
+export const VerifyOTP = createAsyncThunk(
+  "auth/verifyOTP",
+  async (otp: string, thunkAPI) => {
+    try {
+      return await authService.VerifyOTP(otp);
+    } catch (error: any) {
+      const message = error.message || "Something went wrong";
+      return thunkAPI.rejectWithValue(message);
+    }
   }
 );
 
-export const LogoutUser = createAsyncThunkWithHandler(
-  "auth/logout",
-  async () => {
-    return await authService.Logout();
-  }
-);
+// Logout user
+export const LogoutUser = createAsyncThunk("auth/logout", async () => {
+  authService.Logout();
+});
 
 // export const GetUser = createAsyncThunkWithHandler("auth/getUser", async () => {
 //   return await authService.get_user();
 // });
 
-const authSlice = createSlice({
+export const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
@@ -58,26 +67,33 @@ const authSlice = createSlice({
       })
       .addCase(LoginUser.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.isError = false;
         state.isSuccess = true;
-        state.message = "Login Successfully";
-        state.token = action.payload.accessToken;
         state.user = action.payload.user;
       })
       .addCase(LoginUser.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
         state.message = action.payload as string;
-        state.isSuccess = false;
-        state.token = null;
         state.user = null;
+        state.token = null;
+      })
+      .addCase(VerifyOTP.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(VerifyOTP.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.user = action.payload.user;
+        state.token = action.payload.accessToken;
+      })
+      .addCase(VerifyOTP.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload as string;
       })
       .addCase(LogoutUser.fulfilled, (state) => {
-        state.isLoading = false;
-        state.isError = false;
-        state.isSuccess = true;
-        state.token = null;
         state.user = null;
+        state.token = null;
       });
   },
 });

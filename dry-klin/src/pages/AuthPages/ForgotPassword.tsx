@@ -27,10 +27,12 @@ export default function ForgotPassword() {
       try {
         // Mock API call
         await new Promise(resolve => setTimeout(resolve, 1000));
-        toast.success('Reset link sent to your email');
-        navigate('/auth/signin');
+        toast.success('OTP sent to your email');
+        navigate('/auth/otp-verification', { 
+          state: { email: formik.values.email }
+        });
       } catch {
-        toast.error('Failed to send reset link');
+        toast.error('Failed to send OTP');
       } finally {
         setIsLoading(false);
       }
@@ -48,7 +50,7 @@ export default function ForgotPassword() {
               Forgot Password
             </h1>
             <p className="text-gray-600">
-              Enter your email address to receive a reset link
+              Enter your email address to receive an OTP
             </p>
           </div>
 
@@ -90,7 +92,7 @@ export default function ForgotPassword() {
                   Sending...
                 </div>
               ) : (
-                "Send Reset Link"
+                "Send OTP"
               )}
             </button>
 

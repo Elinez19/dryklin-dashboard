@@ -65,6 +65,7 @@ const router = createBrowserRouter([
       },
     ],
   },
+  // Auth routes that should redirect if authenticated
   {
     element: (
       <RedirectIfAuthenticated>
@@ -81,10 +82,6 @@ const router = createBrowserRouter([
         element: <ForgotPassword />,
       },
       {
-        path: "/auth/otp-verification",
-        element: <OTPVerification />,
-      },
-      {
         path: "/auth/reset-password",
         element: <ResetPassword />,
       },
@@ -95,6 +92,16 @@ const router = createBrowserRouter([
       {
         path: "/auth/create-password",
         element: <CreatePassword />,
+      },
+    ],
+  },
+  // OTP verification route - no auth check
+  {
+    element: <AuthPageLayout><Outlet /></AuthPageLayout>,
+    children: [
+      {
+        path: "/auth/otp-verification",
+        element: <OTPVerification />,
       },
     ],
   },

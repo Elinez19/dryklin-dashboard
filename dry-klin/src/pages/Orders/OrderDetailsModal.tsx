@@ -167,13 +167,13 @@ const OrderDetailsModal = ({ isOpen, onClose, order, onUpdate }: OrderDetailsMod
                 <Button
                   type="button"
                   onClick={() => setIsEditing(false)}
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6"
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 rounded-lg py-2"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
-                  className="bg-[#FF5C00] hover:bg-[#FF5C00]/90 text-white px-6"
+                  className="bg-[#FF5C00] hover:bg-[#FF5C00]/90 text-white px-6 rounded-lg py-2"
                 >
                   Save Changes
                 </Button>

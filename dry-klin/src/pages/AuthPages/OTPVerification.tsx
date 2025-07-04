@@ -1,30 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
-import logo1 from "../../assets/images/logo-1.png";
+import logo1 from "@/assets/images/logo-1.png";
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '@/store';
+import { VerifyOTP, reset } from '@/services/features/auth/authSlice';
 
 export default function OTPVerification() {
   const navigate = useNavigate();
   const location = useLocation();
-  const email = location.state?.email || localStorage.getItem('tempEmail');
-  const [isLoading, setIsLoading] = useState(false);
+  const dispatch = useDispatch<AppDispatch>();
+  const { isLoading, isError, message } = useSelector((state: RootState) => state.auth);
   const [otp, setOtp] = useState('');
+  const [email, setEmail] = useState<string | null>(null);
 
-  // Save email to localStorage when it's available from state
-  React.useEffect(() => {
-    if (location.state?.email) {
-      localStorage.setItem('tempEmail', location.state.email);
-    }
-  }, [location.state?.email]);
-
-  // Redirect to sign in if no email is provided
-  React.useEffect(() => {
-    if (!email) {
+  useEffect(() => {
+    // Get email from state or localStorage
+    const stateEmail = location.state?.email;
+    const storedEmail = localStorage.getItem('tempEmail');
+    
+    console.log('State email:', stateEmail);
+    console.log('Stored email:', storedEmail);
+    
+    if (stateEmail) {
+      setEmail(stateEmail);
+      localStorage.setItem('tempEmail', stateEmail);
+    } else if (storedEmail) {
+      setEmail(storedEmail);
+    } else {
+      console.log('No email found, redirecting to sign in');
       navigate('/auth/signin', { replace: true });
     }
-  }, [email, navigate]);
+  }, [location.state, navigate]);
+
+  useEffect(() => {
+    // Reset auth state on component mount
+    return () => {
+      dispatch(reset());
+    };
+  }, [dispatch]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,47 +48,30 @@ export default function OTPVerification() {
       toast.error('Please enter OTP');
       return;
     }
-    
-    setIsLoading(true);
+
     try {
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // For demo, any 6-digit OTP works
-      if (otp.length === 6) {
-        toast.success('OTP verified successfully');
-        localStorage.removeItem('tempEmail'); // Clean up
-        
-        // Set the auth token in localStorage (this will be picked up by the Redux store)
-        const mockToken = 'mock_access_token_from_otp';
-        const mockUser = { username: email };
-        
-        localStorage.setItem('DryKlinAccessToken', mockToken);
-        localStorage.setItem('DryKlinUser', JSON.stringify(mockUser));
-        
-        // Reload the page to trigger Redux store reinitialization with the token
-        window.location.href = '/';
-      } else {
-        toast.error('Invalid OTP');
+      await dispatch(VerifyOTP(otp)).unwrap();
+      localStorage.removeItem('tempEmail'); // Clean up
+      navigate('/', { replace: true });
+    } catch (error) {
+      if (isError) {
+        toast.error(message || 'Failed to verify OTP');
       }
-    } finally {
-      setIsLoading(false);
+      dispatch(reset());
     }
   };
 
   const handleResendOTP = async () => {
-    setIsLoading(true);
-    try {
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      toast.success('OTP resent successfully');
-    } finally {
-      setIsLoading(false);
-    }
+    toast.success('OTP resent successfully');
   };
 
-  if (!email) {
-    return null; // Will redirect via useEffect
+  // Show loading state while checking email
+  if (email === null) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+      </div>
+    );
   }
 
   return (

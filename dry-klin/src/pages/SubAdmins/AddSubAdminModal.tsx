@@ -47,7 +47,7 @@ const AddSubAdminModal = ({ isOpen, onClose, onSubmit }: AddSubAdminModalProps) 
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px]">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-[#FF5C00]">Add New Sub-admin</h2>
+          <h2 className="text-xl font-semibold text-[#FF5C00] ">Add New Sub-admin</h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -125,7 +125,7 @@ const AddSubAdminModal = ({ isOpen, onClose, onSubmit }: AddSubAdminModalProps) 
           <div className="flex justify-end">
             <Button 
               type="submit"
-              className="bg-[#FF5C00] hover:bg-[#FF5C00]/90 text-white px-8"
+              className="bg-[#FF5C00] hover:bg-[#FF5C00]/90 text-white px-8 rounded-lg py-2 "
             >
               Submit
             </Button>

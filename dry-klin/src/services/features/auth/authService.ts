@@ -19,6 +19,22 @@ const Login = async (userData: ILogin) => {
   await new Promise(resolve => setTimeout(resolve, 1000));
   
   if (userData.username === MOCK_USER.username && userData.password === MOCK_USER.password) {
+    // Don't set tokens yet, just return success
+    return {
+      success: true,
+      user: { username: MOCK_USER.username }
+    };
+  }
+  
+  throw new Error("Invalid credentials");
+};
+
+const VerifyOTP = async (otp: string) => {
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  // For demo, any 6-digit OTP works
+  if (otp.length === 6) {
     const tokens = {
       accessToken: MOCK_USER.accessToken,
       refreshToken: MOCK_USER.refreshToken,
@@ -30,18 +46,20 @@ const Login = async (userData: ILogin) => {
     };
   }
   
-  throw new Error("Invalid credentials");
+  throw new Error("Invalid OTP");
 };
 
 export const Logout = () => {
   localStorage.removeItem("DryKlinAccessToken");
   localStorage.removeItem("DryKlinRefreshToken");
   localStorage.removeItem("DryKlinUser");
+  localStorage.removeItem("tempEmail");
   window.location.href = "/auth/signin";
 };
 
 const authService = {
   Login,
+  VerifyOTP,
   Logout,
 };
 
