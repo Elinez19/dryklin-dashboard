@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { BellIcon, CheckIcon } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import avatar from "../../assets/images/Avatar.png";
 

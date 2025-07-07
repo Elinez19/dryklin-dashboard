@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { SearchIcon, ChevronLeftIcon, PlusIcon, ChevronDownIcon } from 'lucide-react';
+import { SearchIcon, ChevronDownIcon } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,35 +14,7 @@ import AddDeliveryAgentModal from '@/components/users/AddDeliveryAgentModal';
 import NotificationBell from '@/components/common/NotificationBell';
 import { useNavigate } from 'react-router-dom';
 
-interface ServicePartner {
-  id: string;
-  companyName: string;
-  idNo: string;
-  email: string;
-  contactPersonName: string;
-  contactNumber: string;
-  initials: string;
-  initialsColor: string;
-}
 
-interface Customer {
-  id: string;
-  name: string;
-  customerId: string;
-  email: string;
-  contactNumber: string;
-  walletBalance: string;
-  avatarUrl?: string;
-}
-
-interface DeliveryAgent {
-  id: string;
-  name: string;
-  agentId: string;
-  email: string;
-  contactNumber: string;
-  avatarUrl?: string;
-}
 
 type UserType = 'customers' | 'service-partners' | 'delivery-agents';
 
@@ -69,282 +41,9 @@ const UserManagement = () => {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const unreadCount = 3;
 
-  const servicePartners: ServicePartner[] = [
-    {
-      id: '1',
-      companyName: 'Kaothar Wash',
-      idNo: '01824VA',
-      email: 'olivia@untitledui.com',
-      contactPersonName: 'Buba Kaothar',
-      contactNumber: '234 567 353 1234',
-      initials: 'KW',
-      initialsColor: 'bg-purple-100 text-purple-600',
-    },
-    {
-      id: '2',
-      companyName: 'Glitters & Co.',
-      idNo: '01824VA',
-      email: 'phoenix@untitledui.com',
-      contactPersonName: 'Nneka Chukwu',
-      contactNumber: '234 567 353 1234',
-      initials: 'GC',
-      initialsColor: 'bg-blue-100 text-blue-600',
-    },
-    {
-      id: '3',
-      companyName: 'Des Laundry',
-      idNo: '01824VA',
-      email: 'lana@untitledui.com',
-      contactPersonName: 'Desmond Tutu',
-      contactNumber: '234 567 353 1234',
-      initials: 'DL',
-      initialsColor: 'bg-pink-100 text-pink-600',
-    },
-    {
-      id: '4',
-      companyName: 'IzzyWash Laundry',
-      idNo: '01824VA',
-      email: 'demi@untitledui.com',
-      contactPersonName: 'Oladejo Israel',
-      contactNumber: '234 567 353 1234',
-      initials: 'IW',
-      initialsColor: 'bg-indigo-100 text-indigo-600',
-    },
-    {
-      id: '5',
-      companyName: 'Pristine Cleaning',
-      idNo: '01824VA',
-      email: 'candice@untitledui.com',
-      contactPersonName: 'Gboyega Precious',
-      contactNumber: '234 567 353 1234',
-      initials: 'PC',
-      initialsColor: 'bg-purple-100 text-purple-600',
-    },
-    {
-      id: '6',
-      companyName: 'Oga Bello Laundry',
-      idNo: '01824VA',
-      email: 'natali@untitledui.com',
-      contactPersonName: 'Adebayo Salami',
-      contactNumber: '234 567 353 1234',
-      initials: 'OB',
-      initialsColor: 'bg-orange-100 text-orange-600',
-    },
-    {
-      id: '7',
-      companyName: 'BJ Wash Services',
-      idNo: '01824VA',
-      email: 'drew@untitledui.com',
-      contactPersonName: 'Adebanji Bolaji',
-      contactNumber: '234 567 353 1234',
-      initials: 'BJ',
-      initialsColor: 'bg-blue-100 text-blue-600',
-    },
-    {
-      id: '8',
-      companyName: 'JK Laundry',
-      idNo: '01824VA',
-      email: 'orlando@untitledui.com',
-      contactPersonName: 'Jide Kosoko',
-      contactNumber: '234 567 353 1234',
-      initials: 'JK',
-      initialsColor: 'bg-green-100 text-green-600',
-    },
-    {
-      id: '9',
-      companyName: "God's Own Laundry",
-      idNo: '01824VA',
-      email: 'andi@untitledui.com',
-      contactPersonName: 'Eze Chinedu',
-      contactNumber: '234 567 353 1234',
-      initials: 'GO',
-      initialsColor: 'bg-yellow-100 text-yellow-600',
-    },
-    {
-      id: '10',
-      companyName: "Jibike's Clothing",
-      idNo: '01824VA',
-      email: 'kate@untitledui.com',
-      contactPersonName: 'Jibike Alarape',
-      contactNumber: 'kate@untitledui.com',
-      initials: 'JC',
-      initialsColor: 'bg-red-100 text-red-600',
-    },
-  ];
 
-  const customers: Customer[] = [
-    {
-      id: '1',
-      name: 'Omolola Dende',
-      customerId: '01824VA',
-      email: 'olivia@untitledui.com',
-      contactNumber: '234 567 353 1234',
-      walletBalance: '₦17,000',
-      avatarUrl: avatar
-    },
-    {
-      id: '2',
-      name: 'Mojola Santos',
-      customerId: '01824VA',
-      email: 'phoenix@untitledui.com',
-      contactNumber: '234 567 353 1234',
-      walletBalance: '₦17,000',
-      avatarUrl: avatar
-    },
-    {
-      id: '3',
-      name: 'Liasu Niniola',
-      customerId: '01824VA',
-      email: 'lana@untitledui.com',
-      contactNumber: '234 567 353 1234',
-      walletBalance: '₦17,000',
-      avatarUrl: avatar
-    },
-    {
-      id: '4',
-      name: 'Reshid Yekini',
-      customerId: '01824VA',
-      email: 'demi@untitledui.com',
-      contactNumber: '234 567 353 1234',
-      walletBalance: '₦17,000',
-      avatarUrl: avatar
-    },
-    {
-      id: '5',
-      name: 'Badore Praise',
-      customerId: '01824VA',
-      email: 'candice@untitledui.com',
-      contactNumber: '234 567 353 1234',
-      walletBalance: '₦17,000',
-      avatarUrl: avatar
-    },
-    {
-      id: '6',
-      name: 'Okoya Memunat',
-      customerId: '01824VA',
-      email: 'natali@untitledui.com',
-      contactNumber: '234 567 353 1234',
-      walletBalance: '₦17,000',
-      avatarUrl: avatar
-    },
-    {
-      id: '7',
-      name: 'Alakija Peters',
-      customerId: '01824VA',
-      email: 'drew@untitledui.com',
-      contactNumber: '234 567 353 1234',
-      walletBalance: '₦17,000',
-      avatarUrl: avatar
-    },
-    {
-      id: '8',
-      name: 'Ibrahim Shaffi',
-      customerId: '01824VA',
-      email: 'orlando@untitledui.com',
-      contactNumber: '234 567 353 1234',
-      walletBalance: '₦17,000',
-    },
-    {
-      id: '9',
-      name: 'Gabriel Doris',
-      customerId: '01824VA',
-      email: 'andi@untitledui.com',
-      contactNumber: '234 567 353 1234',
-      walletBalance: '₦17,000',
-      avatarUrl: avatar
-    },
-    {
-      id: '10',
-      name: 'Diane Farr',
-      customerId: '01824VA',
-      email: 'kate@untitledui.com',
-      contactNumber: 'kate@untitledui.com',
-      walletBalance: '₦17,000',
-      avatarUrl: avatar
-    },
-  ];
 
-  const deliveryAgents: DeliveryAgent[] = [
-    {
-      id: '1',
-      name: 'Omolola Dende',
-      agentId: '01824VA',
-      email: 'olivia@untitledui.com',
-      contactNumber: '234 567 353 1234',
-      avatarUrl: avatar
-    },
-    {
-      id: '2',
-      name: 'Mojola Santos',
-      agentId: '01824VA',
-      email: 'phoenix@untitledui.com',
-      contactNumber: '234 567 353 1234',
-      avatarUrl: avatar
-    },
-    {
-      id: '3',
-      name: 'Liasu Niniola',
-      agentId: '01824VA',
-      email: 'lana@untitledui.com',
-      contactNumber: '234 567 353 1234',
-      avatarUrl: avatar
-    },
-    {
-      id: '4',
-      name: 'Reshid Yekini',
-      agentId: '01824VA',
-      email: 'demi@untitledui.com',
-      contactNumber: '234 567 353 1234',
-      avatarUrl: avatar
-    },
-    {
-      id: '5',
-      name: 'Badore Praise',
-      agentId: '01824VA',
-      email: 'candice@untitledui.com',
-      contactNumber: '234 567 353 1234',
-      avatarUrl: avatar
-    },
-    {
-      id: '6',
-      name: 'Okoya Memunat',
-      agentId: '01824VA',
-      email: 'natali@untitledui.com',
-      contactNumber: '234 567 353 1234',
-      avatarUrl: avatar
-    },
-    {
-      id: '7',
-      name: 'Alakija Peters',
-      agentId: '01824VA',
-      email: 'drew@untitledui.com',
-      contactNumber: '234 567 353 1234',
-      avatarUrl: avatar
-    },
-    {
-      id: '8',
-      name: 'Ibrahim Shaffi',
-      agentId: '01824VA',
-      email: 'orlando@untitledui.com',
-      contactNumber: '234 567 353 1234',
-    },
-    {
-      id: '9',
-      name: 'Gabriel Doris',
-      agentId: '01824VA',
-      email: 'andi@untitledui.com',
-      contactNumber: '234 567 353 1234',
-      avatarUrl: avatar
-    },
-    {
-      id: '10',
-      name: 'Diane Farr',
-      agentId: '01824VA',
-      email: 'kate@untitledui.com',
-      contactNumber: 'kate@untitledui.com',
-      avatarUrl: avatar
-    },
-  ];
+
 
   const users: User[] = [
     {
@@ -391,9 +90,19 @@ const UserManagement = () => {
   };
 
   const filteredUsers = users.filter(user => {
-    if (activeTab === 'customers' && !user.type) return true;
-    if (activeTab === 'service-partners' && user.type === 'Service Partner') return true;
-    if (activeTab === 'delivery-agents' && user.type === 'Delivery Agent') return true;
+    // Filter by active tab
+    let matchesTab = false;
+    if (activeTab === 'customers' && !user.type) matchesTab = true;
+    if (activeTab === 'service-partners' && user.type === 'Service Partner') matchesTab = true;
+    if (activeTab === 'delivery-agents' && user.type === 'Delivery Agent') matchesTab = true;
+    
+    if (!matchesTab) return false;
+    
+    // Filter by status
+    if (statusFilter === 'All') return true;
+    if (statusFilter === 'Active' && user.status === 'ACTIVE') return true;
+    if (statusFilter === 'Inactive' && user.status === 'INACTIVE') return true;
+    
     return false;
   });
 

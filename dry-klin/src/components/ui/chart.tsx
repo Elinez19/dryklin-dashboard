@@ -1,7 +1,19 @@
 
 import * as React from "react"
-import { ResponsiveContainer } from "recharts"
 import { cn } from "@/lib/utils"
+
+// Simple ResponsiveContainer wrapper since recharts ResponsiveContainer has type issues
+const ResponsiveContainer: React.FC<{ width: string; height: string; children: React.ReactNode }> = ({ 
+  width, 
+  height, 
+  children 
+}) => {
+  return (
+    <div style={{ width, height }}>
+      {children}
+    </div>
+  )
+}
 
 export interface ChartConfig {
   [key: string]: {
@@ -111,7 +123,6 @@ export function ChartContainer({
       className={cn("h-full w-full", className)}
       {...props}
     >
-      {/* @ts-expect-error - Recharts ResponsiveContainer component type issues */}
       <ResponsiveContainer width="100%" height="100%">
         {children}
       </ResponsiveContainer>

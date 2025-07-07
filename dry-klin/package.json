@@ -65,6 +65,8 @@
   "devDependencies": {
     "@eslint/js": "^9.19.0",
     "@tailwindcss/postcss": "^4.0.8",
+    "@types/babel__core": "^7.20.5",
+    "@types/babel__template": "^7.4.4",
     "@types/crypto-js": "^4.2.2",
     "@types/node": "^22.15.15",
     "@types/react": "^18.3.12",
