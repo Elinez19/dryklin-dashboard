@@ -20,6 +20,7 @@ export interface Column<T> {
   header: string;
   accessor: string & keyof T;
   cell?: (value: unknown) => React.ReactNode;
+  className?: string;
 }
 
 interface DataTableProps<T> {
@@ -57,25 +58,25 @@ const DataTable = <T extends Record<string, unknown>>({
   const currentData = filteredData.slice(startIndex, endIndex);
 
   return (
-    <div className="space-y-4">
+    <div className="w-full space-y-4">
       {/* Search and Pagination Controls */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <Input
           type="search"
           placeholder="Search..."
-          className="max-w-sm"
+          className="max-w-full sm:max-w-sm text-sm"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 text-sm">
           <button
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
-            className="px-3 py-1 text-sm rounded-md border border-gray-200 disabled:opacity-50"
+            className="px-2 sm:px-3 py-1 text-xs sm:text-sm rounded-md border border-gray-200 disabled:opacity-50"
           >
             Previous
           </button>
-          <span className="text-sm">
+          <span className="text-xs sm:text-sm whitespace-nowrap">
             Page {currentPage} of {totalPages}
           </span>
           <button
@@ -83,7 +84,7 @@ const DataTable = <T extends Record<string, unknown>>({
               setCurrentPage((prev) => Math.min(prev + 1, totalPages))
             }
             disabled={currentPage === totalPages}
-            className="px-3 py-1 text-sm rounded-md border border-gray-200 disabled:opacity-50"
+            className="px-2 sm:px-3 py-1 text-xs sm:text-sm rounded-md border border-gray-200 disabled:opacity-50"
           >
             Next
           </button>
@@ -91,49 +92,60 @@ const DataTable = <T extends Record<string, unknown>>({
       </div>
 
       {/* Table */}
-      <div className="border rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {columns.map((column) => (
-                <TableHead key={String(column.accessor)}>{column.header}</TableHead>
-              ))}
-              {actions.length > 0 && <TableHead>Actions</TableHead>}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {currentData.map((item, rowIndex) => (
-              <TableRow key={rowIndex}>
+      <div className="border rounded-lg overflow-hidden">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
                 {columns.map((column) => (
-                  <TableCell key={String(column.accessor)}>
-                    {column.cell
-                      ? column.cell(item[column.accessor])
-                      : String(item[column.accessor])}
-                  </TableCell>
+                  <TableHead 
+                    key={String(column.accessor)}
+                    className={column.className}
+                  >
+                    {column.header}
+                  </TableHead>
                 ))}
-                {actions.length > 0 && (
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger className="p-1 hover:bg-gray-100 rounded-md">
-                        <MoreDotIcon className="w-5 h-5" />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        {actions.map((action, index) => (
-                          <DropdownMenuItem
-                            key={index}
-                            onClick={() => action.onClick(item)}
-                          >
-                            {action.label}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                )}
+                {actions.length > 0 && <TableHead>Actions</TableHead>}
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {currentData.map((item, rowIndex) => (
+                <TableRow key={rowIndex}>
+                  {columns.map((column) => (
+                    <TableCell 
+                      key={String(column.accessor)}
+                      className={column.className}
+                    >
+                      {column.cell
+                        ? column.cell(item[column.accessor])
+                        : String(item[column.accessor])}
+                    </TableCell>
+                  ))}
+                  {actions.length > 0 && (
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger className="p-1 hover:bg-gray-100 rounded-md">
+                          <MoreDotIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          {actions.map((action, index) => (
+                            <DropdownMenuItem
+                              key={index}
+                              onClick={() => action.onClick(item)}
+                              className="text-xs sm:text-sm"
+                            >
+                              {action.label}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </div>
   );

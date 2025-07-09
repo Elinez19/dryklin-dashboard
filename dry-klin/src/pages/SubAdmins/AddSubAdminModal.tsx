@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useState } from 'react';
+import { XIcon } from 'lucide-react';
 
 interface AddSubAdminModalProps {
   isOpen: boolean;
@@ -45,20 +46,21 @@ const AddSubAdminModal = ({ isOpen, onClose, onSubmit }: AddSubAdminModalProps) 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-[#FF5C00] ">Add New Sub-admin</h2>
+      <DialogContent className="w-[95%] max-w-[600px] p-4 sm:p-6 rounded-lg">
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
+          <h2 className="text-lg sm:text-xl font-semibold text-[#FF5C00]">Add New Sub-admin</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-gray-100 rounded-full"
           >
+            <XIcon className="h-5 w-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div className="space-y-1.5 sm:space-y-2">
+              <label htmlFor="fullName" className="block text-xs sm:text-sm font-medium text-gray-700">
                 Full Name
               </label>
               <input
@@ -68,13 +70,13 @@ const AddSubAdminModal = ({ isOpen, onClose, onSubmit }: AddSubAdminModalProps) 
                 value={formData.fullName}
                 onChange={handleChange}
                 placeholder="Input full name here"
-                className="w-full px-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+                className="w-full px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20"
                 required
               />
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            <div className="space-y-1.5 sm:space-y-2">
+              <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-gray-700">
                 Email Address
               </label>
               <input
@@ -84,13 +86,13 @@ const AddSubAdminModal = ({ isOpen, onClose, onSubmit }: AddSubAdminModalProps) 
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="Input user's email address here"
-                className="w-full px-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+                className="w-full px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20"
                 required
               />
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700">
+            <div className="space-y-1.5 sm:space-y-2">
+              <label htmlFor="phoneNumber" className="block text-xs sm:text-sm font-medium text-gray-700">
                 Phone No.
               </label>
               <input
@@ -100,13 +102,13 @@ const AddSubAdminModal = ({ isOpen, onClose, onSubmit }: AddSubAdminModalProps) 
                 value={formData.phoneNumber}
                 onChange={handleChange}
                 placeholder="Input contact phone number here"
-                className="w-full px-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+                className="w-full px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20"
                 required
               />
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <div className="space-y-1.5 sm:space-y-2">
+              <label htmlFor="password" className="block text-xs sm:text-sm font-medium text-gray-700">
                 Create Password
               </label>
               <input
@@ -116,16 +118,16 @@ const AddSubAdminModal = ({ isOpen, onClose, onSubmit }: AddSubAdminModalProps) 
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="Input password here"
-                className="w-full px-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+                className="w-full px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20"
                 required
               />
             </div>
           </div>
 
-          <div className="flex justify-end">
+          <div className="flex justify-end pt-2">
             <Button 
               type="submit"
-              className="bg-[#FF5C00] hover:bg-[#FF5C00]/90 text-white px-8 rounded-lg py-2 "
+              className="w-full sm:w-auto bg-[#FF5C00] hover:bg-[#FF5C00]/90 text-white px-6 sm:px-8 py-1.5 sm:py-2 text-xs sm:text-sm rounded-lg"
             >
               Submit
             </Button>

@@ -60,8 +60,20 @@ const AppLayout = ({ children }: AppLayoutProps) => {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
 
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isMobileMenuOpen]);
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 relative">
       {/* Mobile Menu Button */}
       <button
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -74,13 +86,21 @@ const AppLayout = ({ children }: AppLayoutProps) => {
         )}
       </button>
 
-      <div className="flex min-h-screen relative">
-        {/* Sidebar */}
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
         <div 
+          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      <div className="flex min-h-screen">
+        {/* Sidebar */}
+        <aside 
           className={cn(
-            "bg-orange-600 text-white h-screen transition-all duration-300 ease-in-out",
+            "fixed md:sticky top-0 left-0 h-screen z-40 md:z-0",
+            "bg-orange-600 text-white transition-transform duration-300 ease-in-out",
             isCollapsed ? "w-20" : "w-64",
-            "fixed md:sticky top-0 left-0 z-40 md:z-0",
             isMobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
           )}
         >
@@ -134,18 +154,18 @@ const AppLayout = ({ children }: AppLayoutProps) => {
               );
             })}
           </nav>
-        </div>
+        </aside>
 
         {/* Main Content */}
-        <div 
+        <main 
           className={cn(
-            "flex-1 transition-all duration-300 ease-in-out",
-            isMobileMenuOpen ? "ml-64" : "ml-0",
-            "md:ml-0 md:w-[calc(100%-theme(spacing.20))]"
+            "flex-1 transition-all duration-300 ease-in-out relative",
+            "md:ml-0",
+            isCollapsed ? "md:pl-0" : "md:pl-0"
           )}
         >
           {children}
-        </div>
+        </main>
       </div>
     </div>
   );

@@ -111,160 +111,152 @@ const Dashboard = () => {
     },
   ];
 
-  const columns = [
-    { 
-      header: 'Order ID', 
-      accessor: 'id',
-      cell: (value: unknown) => (
-        <span className="text-[11px] md:text-sm">{String(value)}</span>
-      )
-    },
-    { 
-      header: 'Customer', 
-      accessor: 'customerName', 
-      className: 'hidden md:table-cell',
-      cell: (value: unknown) => (
-        <span className="text-[11px] md:text-sm">{String(value)}</span>
-      )
-    },
-    { 
-      header: 'Email', 
-      accessor: 'email', 
-      className: 'hidden lg:table-cell',
-      cell: (value: unknown) => (
-        <span className="text-[11px] md:text-sm">{String(value)}</span>
-      )
-    },
-    { 
-      header: 'Service', 
-      accessor: 'serviceType', 
-      className: 'hidden sm:table-cell',
-      cell: (value: unknown) => (
-        <span className="text-[11px] md:text-sm">{String(value)}</span>
-      )
-    },
-    {
-      header: 'Status',
-      accessor: 'orderStatus',
-      cell: (value: unknown) => {
-        const status = value as Order['orderStatus'];
-        const getStatusStyle = (status: Order['orderStatus']) => {
-          switch (status) {
-            case 'NEW':
-              return 'bg-blue-100 text-blue-800';
-            case 'PROCESSING':
-              return 'bg-orange-100 text-orange-800';
-            case 'COMPLETED':
-              return 'bg-green-100 text-green-800';
-            case 'CANCELLED':
-              return 'bg-red-100 text-red-800';
-            case 'SUCCESSFUL':
-              return 'bg-green-100 text-green-800';
-            default:
-              return 'bg-gray-100 text-gray-800';
-          }
-        };
-        return (
-          <span className={`px-1.5 md:px-2 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs ${getStatusStyle(status)}`}>
-            {String(status)}
-          </span>
-        );
-      },
-    },
-    {
-      header: 'Payment',
-      accessor: 'paymentStatus',
-      className: 'hidden sm:table-cell',
-      cell: (value: unknown) => {
-        const status = value as Order['paymentStatus'];
-        const getStatusStyle = (status: Order['paymentStatus']) => {
-          switch (status) {
-            case 'PAID':
-              return 'bg-green-100 text-green-800';
-            case 'PENDING':
-              return 'bg-yellow-100 text-yellow-800';
-            default:
-              return 'bg-gray-100 text-gray-800';
-          }
-        };
-        return (
-          <span className={`px-1.5 md:px-2 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs ${getStatusStyle(status)}`}>
-            {String(status)}
-          </span>
-        );
-      },
-    },
-    {
-      header: '',
-      accessor: 'actions',
-      cell: () => (
-        <button className="text-orange-600 text-[11px] md:text-sm whitespace-nowrap">
-          View Details
-        </button>
-      ),
-    },
-  ];
-
   const handleLogout = () => {
     dispatch(LogoutUser());
     navigate('/auth/signin');
   };
 
   return (
-    <div className="p-2 md:p-6 space-y-3 md:space-y-6 pt-14 md:pt-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 md:gap-4">
-        <h1 className="text-lg md:text-2xl font-bold">Dashboard</h1>
-        <div className="flex items-center justify-between md:justify-end gap-2 md:gap-4">
+    <div className="p-2 sm:p-4 md:p-6 space-y-3 md:space-y-6 pt-14 md:pt-6 max-w-[1600px] mx-auto min-h-screen bg-gray-50">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 md:gap-4">
+        <h1 className="text-lg sm:text-xl md:text-2xl font-bold">Dashboard</h1>
+        <div className="flex items-center justify-between sm:justify-end gap-2 md:gap-4">
           <NotificationBell unreadCount={unreadCount} />
           <div className="flex items-center gap-1.5 md:gap-3">
             <img
               src={avatar}
               alt="Profile"
-              className="w-7 h-7 md:w-8 md:h-8 rounded-full"
+              className="w-7 h-7 sm:w-8 sm:h-8 rounded-full"
             />
-            <div className="hidden md:block">
+            <div className="hidden sm:block">
               <div className="text-sm font-medium">Olivia Rhye</div>
               <div className="text-xs text-gray-500">olivia@untitledui.com</div>
             </div>
           </div>
           <button 
             onClick={handleLogout}
-            className="text-red-500 hover:text-red-600 text-sm font-medium"
+            className="text-red-500 hover:text-red-600 text-xs sm:text-sm font-medium"
           >
             Log Out
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 md:gap-6">
         {stats.map((item, index) => (
-          <Card key={index} className="p-2 md:p-4 bg-white">
+          <Card key={index} className="p-2 sm:p-3 md:p-4 bg-white hover:shadow-lg transition-shadow duration-200">
             <div className="flex flex-col">
-              <span className="text-[10px] md:text-sm text-[#FF5C00] mb-1 md:mb-2 line-clamp-1">{item.title}</span>
+              <span className="text-[10px] sm:text-xs md:text-sm text-[#FF5C00] mb-1 md:mb-2 line-clamp-1">{item.title}</span>
               <div className="flex items-center justify-between">
-                <span className="text-base md:text-2xl font-bold">{item.value}</span>
-                <button className="text-[10px] md:text-sm text-[#FF5C00] hidden md:block">See All</button>
+                <span className="text-sm sm:text-lg md:text-2xl font-bold">{item.value}</span>
+                <button className="text-[10px] sm:text-xs md:text-sm text-[#FF5C00] hidden sm:block hover:text-orange-700 transition-colors duration-200">See All</button>
               </div>
             </div>
           </Card>
         ))}
       </div>
 
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-2 md:p-6 border-b">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-1 md:gap-0">
-            <h2 className="text-sm md:text-lg font-semibold">Recent Orders</h2>
-            <button className="text-xs md:text-sm text-gray-500">See All</button>
-          </div>
-        </div>
-        <div className="p-2 md:p-6">
-          <DataTable<Order>
-            columns={columns}
+      <Card className="bg-white p-2 sm:p-4 md:p-6">
+        <div className="w-full">
+          <DataTable
+            columns={[
+              { 
+                header: 'Order ID', 
+                accessor: 'id',
+                cell: (value: unknown) => (
+                  <span className="text-[11px] sm:text-xs md:text-sm font-medium">{String(value)}</span>
+                )
+              },
+              { 
+                header: 'Customer', 
+                accessor: 'customerName', 
+                className: 'hidden sm:table-cell',
+                cell: (value: unknown) => (
+                  <span className="text-[11px] sm:text-xs md:text-sm">{String(value)}</span>
+                )
+              },
+              { 
+                header: 'Email', 
+                accessor: 'email', 
+                className: 'hidden lg:table-cell',
+                cell: (value: unknown) => (
+                  <span className="text-[11px] sm:text-xs md:text-sm text-gray-600">{String(value)}</span>
+                )
+              },
+              { 
+                header: 'Service', 
+                accessor: 'serviceType', 
+                className: 'hidden md:table-cell',
+                cell: (value: unknown) => (
+                  <span className="text-[11px] sm:text-xs md:text-sm">{String(value)}</span>
+                )
+              },
+              {
+                header: 'Status',
+                accessor: 'orderStatus',
+                cell: (value: unknown) => {
+                  const status = value as Order['orderStatus'];
+                  const getStatusStyle = (status: Order['orderStatus']) => {
+                    switch (status) {
+                      case 'NEW':
+                        return 'bg-blue-100 text-blue-800';
+                      case 'PROCESSING':
+                        return 'bg-orange-100 text-orange-800';
+                      case 'COMPLETED':
+                        return 'bg-green-100 text-green-800';
+                      case 'CANCELLED':
+                        return 'bg-red-100 text-red-800';
+                      case 'SUCCESSFUL':
+                        return 'bg-green-100 text-green-800';
+                      default:
+                        return 'bg-gray-100 text-gray-800';
+                    }
+                  };
+                  return (
+                    <span className={`inline-block px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs whitespace-nowrap ${getStatusStyle(status)}`}>
+                      {String(status)}
+                    </span>
+                  );
+                },
+              },
+              {
+                header: 'Payment',
+                accessor: 'paymentStatus',
+                className: 'hidden sm:table-cell',
+                cell: (value: unknown) => {
+                  const status = value as Order['paymentStatus'];
+                  const getStatusStyle = (status: Order['paymentStatus']) => {
+                    switch (status) {
+                      case 'PAID':
+                        return 'bg-green-100 text-green-800';
+                      case 'PENDING':
+                        return 'bg-yellow-100 text-yellow-800';
+                      default:
+                        return 'bg-gray-100 text-gray-800';
+                    }
+                  };
+                  return (
+                    <span className={`inline-block px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs whitespace-nowrap ${getStatusStyle(status)}`}>
+                      {String(status)}
+                    </span>
+                  );
+                },
+              },
+              {
+                header: '',
+                accessor: 'actions',
+                cell: () => (
+                  <button className="text-orange-600 hover:text-orange-700 text-[11px] sm:text-xs md:text-sm font-medium whitespace-nowrap transition-colors duration-200">
+                    View Details
+                  </button>
+                ),
+              },
+            ]}
             data={recentOrders}
             itemsPerPage={5}
           />
         </div>
-      </div>
+      </Card>
     </div>
   );
 };
