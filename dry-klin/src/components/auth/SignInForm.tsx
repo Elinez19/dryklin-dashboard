@@ -26,24 +26,24 @@ export default function SignInForm() {
           
           <form onSubmit={formik.handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="username" className="text-gray-700">
+              <Label htmlFor="email" className="text-gray-700">
                 Enter Email Address
               </Label>
               <Input 
-                id="username"
-                name="username"
+                id="email"
+                name="email"
                 placeholder="Email address"
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
-                value={formik.values.username}
+                value={formik.values.email}
                 className={`w-full p-3 ${
-                  formik.touched.username && formik.errors.username 
+                  formik.touched.email && formik.errors.email 
                     ? "border-red-500" 
                     : "border-gray-200"
                 }`}
               />
-              {formik.touched.username && formik.errors.username && (
-                <div className="text-sm text-red-500">{formik.errors.username}</div>
+              {formik.touched.email && formik.errors.email && (
+                <div className="text-sm text-red-500">{formik.errors.email}</div>
               )}
             </div>
             

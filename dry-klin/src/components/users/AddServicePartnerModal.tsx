@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import SuccessModal from './SuccessModal';
+import { AddServicePartner } from "@/services/features/servicePartnerService";
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from '@/store';
+import { fetchServicePartners } from '@/services/features/servicePartnerSlice';
 
 interface AddServicePartnerModalProps {
   isOpen: boolean;
@@ -16,7 +20,10 @@ interface FormData {
 }
 
 const AddServicePartnerModal = ({ isOpen, onClose }: AddServicePartnerModalProps) => {
+  const dispatch = useDispatch<AppDispatch>();
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData>({
     companyName: '',
     email: '',
@@ -33,11 +40,26 @@ const AddServicePartnerModal = ({ isOpen, onClose }: AddServicePartnerModalProps
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically make an API call to save the service partner
-    // For now, we'll just show the success modal
-    setShowSuccess(true);
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // Make the actual API call to add the service partner
+      await AddServicePartner(formData);
+      
+      // Refresh the service partners list
+      dispatch(fetchServicePartners());
+      
+      // Show success message
+      setShowSuccess(true);
+    } catch (error) {
+      console.error("Error adding service partner:", error);
+      setError(error instanceof Error ? error.message : "Failed to add service partner");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSuccessClose = () => {
@@ -68,6 +90,12 @@ const AddServicePartnerModal = ({ isOpen, onClose }: AddServicePartnerModalProps
             </div>
           </DialogHeader>
 
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-md p-3 mb-4">
+              <p className="text-sm text-red-800">{error}</p>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               {/* Company Name */}
@@ -83,6 +111,7 @@ const AddServicePartnerModal = ({ isOpen, onClose }: AddServicePartnerModalProps
                   placeholder="Input company's name here"
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF5C00]/20 focus:border-[#FF5C00]"
                   required
+                  disabled={isLoading}
                 />
               </div>
 
@@ -99,6 +128,7 @@ const AddServicePartnerModal = ({ isOpen, onClose }: AddServicePartnerModalProps
                   placeholder="Input user's email address here"
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF5C00]/20 focus:border-[#FF5C00]"
                   required
+                  disabled={isLoading}
                 />
               </div>
 
@@ -115,6 +145,7 @@ const AddServicePartnerModal = ({ isOpen, onClose }: AddServicePartnerModalProps
                   placeholder="Input contact person name here"
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF5C00]/20 focus:border-[#FF5C00]"
                   required
+                  disabled={isLoading}
                 />
               </div>
 
@@ -131,6 +162,7 @@ const AddServicePartnerModal = ({ isOpen, onClose }: AddServicePartnerModalProps
                   placeholder="Input contact phone number here"
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF5C00]/20 focus:border-[#FF5C00]"
                   required
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -148,15 +180,17 @@ const AddServicePartnerModal = ({ isOpen, onClose }: AddServicePartnerModalProps
                 placeholder="Input service partner's address here"
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF5C00]/20 focus:border-[#FF5C00]"
                 required
+                disabled={isLoading}
               />
             </div>
 
             <div className="flex justify-end pt-4">
               <button
                 type="submit"
-                className="w-full md:w-auto px-6 py-2 bg-[#FF5C00] text-white rounded-lg text-sm hover:bg-[#FF5C00]/90 transition-colors"
+                className="w-full md:w-auto px-6 py-2 bg-[#FF5C00] text-white rounded-lg text-sm hover:bg-[#FF5C00]/90 transition-colors disabled:opacity-70"
+                disabled={isLoading}
               >
-                Submit
+                {isLoading ? "Submitting..." : "Submit"}
               </button>
             </div>
           </form>

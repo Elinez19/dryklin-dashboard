@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -6,6 +5,9 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { toast } from 'sonner';
 import { Card, CardContent } from '@/components/ui/card';
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from '@/store';
+import { reset } from '@/services/features/auth/authSlice';
 
 const ForgotPasswordSchema = Yup.object().shape({
   email: Yup.string()
@@ -15,7 +17,7 @@ const ForgotPasswordSchema = Yup.object().shape({
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+  const dispatch = useDispatch<AppDispatch>();
 
   const formik = useFormik({
     initialValues: {
@@ -23,18 +25,12 @@ export default function ForgotPassword() {
     },
     validationSchema: ForgotPasswordSchema,
     onSubmit: async () => {
-      setIsLoading(true);
       try {
-        // Mock API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        toast.success('OTP sent to your email');
-        navigate('/auth/otp-verification', { 
-          state: { email: formik.values.email }
-        });
+       
+        toast.success('If this email exists, a password reset link will be sent.');
       } catch {
-        toast.error('Failed to send OTP');
-      } finally {
-        setIsLoading(false);
+        toast.error('Failed to process request');
+        dispatch(reset());
       }
     },
   });
@@ -81,9 +77,9 @@ export default function ForgotPassword() {
             <button
               type="submit"
               className="w-full bg-orange-600 text-white py-3 rounded-lg hover:bg-orange-700 transition-colors"
-              disabled={isLoading}
+              disabled={formik.isSubmitting}
             >
-              {isLoading ? (
+              {formik.isSubmitting ? (
                 <div className="flex items-center justify-center">
                   <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>

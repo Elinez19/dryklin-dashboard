@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { SearchIcon, ChevronDownIcon } from 'lucide-react';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,68 +12,52 @@ import AddSubAdminModal from './AddSubAdminModal';
 import avatar from "../../assets/images/Avatar.png";
 import NotificationBell from '@/components/common/NotificationBell';
 import { useNavigate } from 'react-router-dom';
-
-interface SubAdmin {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  status: 'ACTIVE' | 'INACTIVE';
-  lastActive: string;
-}
+import { ISubAdmin } from '@/services/features/subAdminService';
+import { fetchSubAdmins } from '@/services/features/subAdminSlice';
+import { RootState, AppDispatch } from '@/store';
+import Loader from '@/components/common/Loader';
+import { toast } from 'sonner';
 
 const SubAdmins = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
+  const { subAdmins, subAdminsLoading, subAdminsError } = useSelector((state: RootState) => state.subadmins);
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [dateFilter, setDateFilter] = useState('Last 7 Days');
   const [, setStatusFilter] = useState('All');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const unreadCount = 3;
 
-  const subAdmins: SubAdmin[] = [
-    {
-      id: '0081727',
-      name: 'Chinedu Okafor',
-      email: 'olivia@untitledui.com',
-      role: 'Super Admin',
-      status: 'ACTIVE',
-      lastActive: '2 hours ago',
-    },
-    {
-      id: '0081728',
-      name: 'Amina Bello',
-      email: 'phoenix@untitledui.com',
-      role: 'Admin',
-      status: 'INACTIVE',
-      lastActive: '5 hours ago',
-    },
-    {
-      id: '0081729',
-      name: 'Emeka Nwosu',
-      email: 'lana@untitledui.com',
-      role: 'Admin',
-      status: 'ACTIVE',
-      lastActive: '1 day ago',
-    },
-    {
-      id: '0081730',
-      name: 'Fatima Abubakar',
-      email: 'demi@untitledui.com',
-      role: 'Admin',
-      status: 'ACTIVE',
-      lastActive: '3 days ago',
-    },
-    {
-      id: '0081731',
-      name: 'Tunde Adeyemi',
-      email: 'candice@untitledui.com',
-      role: 'Super Admin',
-      status: 'ACTIVE',
-      lastActive: '1 week ago',
-    },
-  ];
+  // Show toast for error but do not block UI
+  useEffect(() => {
+    if (subAdminsError) {
+      // If the error message contains the backend message, show it
+      if (subAdminsError.includes('Only admins can perform this action')) {
+        toast.error('Only admins can perform this action');
+      } else {
+        toast.error(subAdminsError);
+      }
+    }
+  }, [subAdminsError]);
 
-  const getStatusStyle = (status: SubAdmin['status']) => {
+  // Fetch sub-admins from API
+  const handleFetchSubAdmins = () => {
+    dispatch(fetchSubAdmins());
+  };
+
+  useEffect(() => {
+    handleFetchSubAdmins();
+  }, [dispatch]);
+
+  // Filter sub-admins based on search query
+  const filteredSubAdmins = subAdmins.filter(admin =>
+    admin.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    admin.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    admin.id.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const getStatusStyle = (status: ISubAdmin['status']) => {
     switch (status) {
       case 'ACTIVE':
         return 'bg-green-100 text-green-800';
@@ -83,12 +68,26 @@ const SubAdmins = () => {
     }
   };
 
+  if (subAdminsLoading) {
+    return (
+      <div className="p-2 sm:p-4 md:p-6">
+        <div className="flex items-center justify-center h-64">
+          <Loader />
+        </div>
+      </div>
+    );
+  }
+
+  // Do NOT block UI on error, just show toast
+
   return (
     <div className="p-2 sm:p-4 md:p-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-8">
         <div className="flex items-center gap-2">
           <h1 className="text-lg sm:text-xl md:text-2xl font-semibold">Sub-admins</h1>
-          <span className="px-2 py-1 text-xs font-medium bg-[#FF5C00] bg-opacity-10 text-[#FF5C00] rounded">84 F202</span>
+          <span className="px-2 py-1 text-xs font-medium bg-[#FF5C00] bg-opacity-10 text-[#FF5C00] rounded">
+            {subAdmins.length} F202
+          </span>
         </div>
         <div className="flex items-center justify-between sm:justify-end gap-4 sm:gap-6">
           <NotificationBell unreadCount={unreadCount} />
@@ -180,49 +179,59 @@ const SubAdmins = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {subAdmins.map((admin, index) => (
-                      <tr key={index} className="hover:bg-gray-50">
-                        <td className="w-4 p-2 sm:p-4">
-                          <input type="checkbox" className="rounded border-gray-300" />
-                        </td>
-                        <td className="px-2 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm whitespace-nowrap">{admin.id}</td>
-                        <td className="px-2 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm whitespace-nowrap">{admin.name}</td>
-                        <td className="hidden sm:table-cell px-2 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm whitespace-nowrap">{admin.email}</td>
-                        <td className="hidden md:table-cell px-2 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm whitespace-nowrap">{admin.role}</td>
-                        <td className="px-2 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm whitespace-nowrap">
-                          <span className={`inline-flex px-2 py-1 rounded-full text-xs ${getStatusStyle(admin.status)}`}>
-                            {admin.status}
-                          </span>
-                        </td>
-                        <td className="hidden sm:table-cell px-2 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm whitespace-nowrap">{admin.lastActive}</td>
-                        <td className="px-2 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm whitespace-nowrap">
-                          <button className="text-[#FF5C00] hover:text-[#FF5C00]/80">View Details</button>
+                    {filteredSubAdmins.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="px-2 sm:px-4 py-8 text-center text-gray-500">
+                          {searchQuery ? 'No sub-admins found matching your search.' : 'No sub-admins found.'}
                         </td>
                       </tr>
-                    ))}
+                    ) : (
+                      filteredSubAdmins.map((admin, index) => (
+                        <tr key={admin.id || index} className="hover:bg-gray-50">
+                          <td className="w-4 p-2 sm:p-4">
+                            <input type="checkbox" className="rounded border-gray-300" />
+                          </td>
+                          <td className="px-2 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm whitespace-nowrap">{admin.id}</td>
+                          <td className="px-2 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm whitespace-nowrap">{admin.name}</td>
+                          <td className="hidden sm:table-cell px-2 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm whitespace-nowrap">{admin.email}</td>
+                          <td className="hidden md:table-cell px-2 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm whitespace-nowrap">{admin.role}</td>
+                          <td className="px-2 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm whitespace-nowrap">
+                            <span className={`inline-flex px-2 py-1 rounded-full text-xs ${getStatusStyle(admin.status)}`}>
+                              {admin.status}
+                            </span>
+                          </td>
+                          <td className="hidden sm:table-cell px-2 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm whitespace-nowrap">{admin.lastActive}</td>
+                          <td className="px-2 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm whitespace-nowrap">
+                            <button className="text-[#FF5C00] hover:text-[#FF5C00]/80">View Details</button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
-            <button className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 text-xs sm:text-sm text-gray-600 hover:text-gray-800 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-              <span>Previous</span>
-            </button>
-            <div className="flex items-center gap-1 overflow-x-auto">
-              <button className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm bg-orange-50 text-[#FF5C00] rounded-lg border border-orange-200">1</button>
-              <button className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm text-gray-600 hover:text-gray-800 rounded-lg border border-transparent hover:border-gray-200 hover:bg-gray-50 transition-colors">2</button>
-              <button className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm text-gray-600 hover:text-gray-800 rounded-lg border border-transparent hover:border-gray-200 hover:bg-gray-50 transition-colors">3</button>
-              <span className="px-2 text-gray-400">...</span>
-              <button className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm text-gray-600 hover:text-gray-800 rounded-lg border border-transparent hover:border-gray-200 hover:bg-gray-50 transition-colors">8</button>
-              <button className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm text-gray-600 hover:text-gray-800 rounded-lg border border-transparent hover:border-gray-200 hover:bg-gray-50 transition-colors">9</button>
-              <button className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm text-gray-600 hover:text-gray-800 rounded-lg border border-transparent hover:border-gray-200 hover:bg-gray-50 transition-colors">10</button>
+          {filteredSubAdmins.length > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
+              <button className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 text-xs sm:text-sm text-gray-600 hover:text-gray-800 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                <span>Previous</span>
+              </button>
+              <div className="flex items-center gap-1 overflow-x-auto">
+                <button className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm bg-orange-50 text-[#FF5C00] rounded-lg border border-orange-200">1</button>
+                <button className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm text-gray-600 hover:text-gray-800 rounded-lg border border-transparent hover:border-gray-200 hover:bg-gray-50 transition-colors">2</button>
+                <button className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm text-gray-600 hover:text-gray-800 rounded-lg border border-transparent hover:border-gray-200 hover:bg-gray-50 transition-colors">3</button>
+                <span className="px-2 text-gray-400">...</span>
+                <button className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm text-gray-600 hover:text-gray-800 rounded-lg border border-transparent hover:border-gray-200 hover:bg-gray-50 transition-colors">8</button>
+                <button className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm text-gray-600 hover:text-gray-800 rounded-lg border border-transparent hover:border-gray-200 hover:bg-gray-50 transition-colors">9</button>
+                <button className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm text-gray-600 hover:text-gray-800 rounded-lg border border-transparent hover:border-gray-200 hover:bg-gray-50 transition-colors">10</button>
+              </div>
+              <button className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 text-xs sm:text-sm text-gray-600 hover:text-gray-800 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                <span>Next</span>
+              </button>
             </div>
-            <button className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 text-xs sm:text-sm text-gray-600 hover:text-gray-800 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-              <span>Next</span>
-            </button>
-          </div>
+          )}
         </div>
       </div>
 
@@ -232,6 +241,8 @@ const SubAdmins = () => {
         onSubmit={(data) => {
           console.log('New sub-admin data:', data);
           setIsAddModalOpen(false);
+          // Refresh the list after adding a new sub-admin
+          handleFetchSubAdmins();
         }}
       />
     </div>

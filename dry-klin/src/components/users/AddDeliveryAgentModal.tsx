@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import SuccessModal from './SuccessModal';
+import { addAgent } from "@/services/features/agentService";
 
 interface AddDeliveryAgentModalProps {
   isOpen: boolean;
@@ -35,11 +36,22 @@ const AddDeliveryAgentModal = ({ isOpen, onClose }: AddDeliveryAgentModalProps) 
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically make an API call to save the delivery agent
-    // For now, we'll just show the success modal
-    setShowSuccess(true);
+    try {
+      await addAgent({
+        id: Date.now().toString(),
+        fullName: formData.firstName + ' ' + formData.lastName,
+        email: formData.email,
+        phoneNumber: formData.phoneNumber,
+        location: formData.address,
+      });
+      setShowSuccess(true);
+    } catch (error) {
+      // Optionally show error to user
+      alert("Error adding delivery agent. Please try again.");
+      console.error("Error adding delivery agent:", error);
+    }
   };
 
   const handleSuccessClose = () => {

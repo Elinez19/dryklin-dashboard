@@ -26,13 +26,11 @@ export const createAsyncThunkWithHandler = <Returned = any, ThunkArg = void>(
         error.message ||
         error.toString();
 
-      // Handle authentication errors that weren't resolved by axios interceptor
-      // This means the interceptor couldn't refresh tokens and the user should be logged out
+      
       if (
         error.response &&
         (error.response.status === 401 || error.response.status === 403)
       ) {
-        // Only logout if we're not already on the auth page
         if (window.location.pathname !== "/auth") {
           Logout();
         }

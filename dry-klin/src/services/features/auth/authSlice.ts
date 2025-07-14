@@ -1,18 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import authService from "./authService";
-import { ILogin } from "@/types/auth_types";
-
-// Get user from localStorage
-const user = localStorage.getItem("DryKlinUser");
-
-const initialState = {
-  user: user ? JSON.parse(user) : null,
-  token: localStorage.getItem("DryKlinAccessToken"),
-  isLoading: false,
-  isSuccess: false,
-  isError: false,
-  message: "",
-};
+import { ILogin, ICustomerRegistration } from "@/types/auth_types";
 
 // Login user
 export const LoginUser = createAsyncThunk(
@@ -20,21 +8,21 @@ export const LoginUser = createAsyncThunk(
   async (user: ILogin, thunkAPI) => {
     try {
       return await authService.Login(user);
-    } catch (error: any) {
-      const message = error.message || "Something went wrong";
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Something went wrong";
       return thunkAPI.rejectWithValue(message);
     }
   }
 );
 
-// Verify OTP
-export const VerifyOTP = createAsyncThunk(
-  "auth/verifyOTP",
-  async (otp: string, thunkAPI) => {
+// Register customer
+export const RegisterCustomer = createAsyncThunk(
+  "auth/register-customer",
+  async ({ customerId, userData }: { customerId: string; userData: ICustomerRegistration }, thunkAPI) => {
     try {
-      return await authService.VerifyOTP(otp);
-    } catch (error: any) {
-      const message = error.message || "Something went wrong";
+      return await authService.RegisterCustomer(customerId, userData);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Something went wrong";
       return thunkAPI.rejectWithValue(message);
     }
   }
@@ -45,13 +33,16 @@ export const LogoutUser = createAsyncThunk("auth/logout", async () => {
   authService.Logout();
 });
 
-// export const GetUser = createAsyncThunkWithHandler("auth/getUser", async () => {
-//   return await authService.get_user();
-// });
-
 export const authSlice = createSlice({
   name: "auth",
-  initialState,
+  initialState: {
+    user: localStorage.getItem("DryKlinUser") ? JSON.parse(localStorage.getItem("DryKlinUser")!) : null,
+    token: localStorage.getItem("DryKlinAccessToken"),
+    isLoading: false,
+    isSuccess: false,
+    isError: false,
+    message: "",
+  },
   reducers: {
     reset: (state) => {
       state.isLoading = false;
@@ -69,6 +60,7 @@ export const authSlice = createSlice({
         state.isLoading = false;
         state.isSuccess = true;
         state.user = action.payload.user;
+        state.token = localStorage.getItem("DryKlinAccessToken");
       })
       .addCase(LoginUser.rejected, (state, action) => {
         state.isLoading = false;
@@ -77,16 +69,15 @@ export const authSlice = createSlice({
         state.user = null;
         state.token = null;
       })
-      .addCase(VerifyOTP.pending, (state) => {
+      .addCase(RegisterCustomer.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(VerifyOTP.fulfilled, (state, action) => {
+      .addCase(RegisterCustomer.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isSuccess = true;
-        state.user = action.payload.user;
-        state.token = action.payload.accessToken;
+        state.message = action.payload.message;
       })
-      .addCase(VerifyOTP.rejected, (state, action) => {
+      .addCase(RegisterCustomer.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
         state.message = action.payload as string;
