@@ -230,4 +230,36 @@ export const createPendingOrder = async (orderData: IPendingOrderRequest): Promi
         : "Failed to create pending order";
     throw new Error(errorMessage);
   }
+};
+
+/**
+ * Confirm an order
+ * @param orderId - The ID of the order to confirm
+ * @returns Promise with confirmed order data
+ */
+export const confirmOrder = async (orderId: string): Promise<IOrder> => {
+  try {
+    const response = await axiosClient.post<IOrdersResponse>(`/api/v1/laundry/confirm-order/${orderId}`);
+    
+    const { data } = response;
+    
+    if (data.httpStatus === "100 CONTINUE" || data.httpStatus === "ACCEPTED" || data.httpStatus === "SUCCESS") {
+      if (Array.isArray(data.data)) {
+        return data.data[0];
+      }
+      return data.data as IOrder;
+    } else {
+      throw new Error(data.message || "Failed to confirm order");
+    }
+  } catch (error: unknown) {
+    console.error('confirmOrder error:', error);
+    
+    // Handle API errors
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : error && typeof error === 'object' && 'response' in error && error.response && typeof error.response === 'object' && 'data' in error.response && error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data && typeof error.response.data.message === 'string'
+        ? error.response.data.message
+        : "Failed to confirm order";
+    throw new Error(errorMessage);
+  }
 }; 

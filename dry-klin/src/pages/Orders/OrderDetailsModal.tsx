@@ -8,9 +8,10 @@ interface OrderDetailsModalProps {
   onClose: () => void;
   order: IOrder | null;
   onUpdate: (orderId: string, updates: Partial<IOrder>) => void;
+  onConfirm?: (orderId: string) => void;
 }
 
-const OrderDetailsModal = ({ isOpen, onClose, order, onUpdate }: OrderDetailsModalProps) => {
+const OrderDetailsModal = ({ isOpen, onClose, order, onUpdate, onConfirm }: OrderDetailsModalProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedOrder, setEditedOrder] = useState<IOrder | null>(null);
 
@@ -172,13 +173,24 @@ const OrderDetailsModal = ({ isOpen, onClose, order, onUpdate }: OrderDetailsMod
                 </Button>
               </>
             ) : (
-              <Button
-                type="button"
-                onClick={() => setIsEditing(true)}
-                className="bg-[#FF5C00] hover:bg-[#FF5C00]/90 text-white px-6 rounded-lg py-2"
-              >
-                Edit Order
-              </Button>
+              <>
+                <Button
+                  type="button"
+                  onClick={() => setIsEditing(true)}
+                  className="bg-[#FF5C00] hover:bg-[#FF5C00]/90 text-white px-6 rounded-lg py-2"
+                >
+                  Edit Order
+                </Button>
+                {order.orderStatus === 'PENDING' && onConfirm && (
+                  <Button
+                    type="button"
+                    onClick={() => onConfirm(order.id)}
+                    className="bg-green-600 hover:bg-green-700 text-white px-6 rounded-lg py-2"
+                  >
+                    Confirm Order
+                  </Button>
+                )}
+              </>
             )}
           </div>
         </form>

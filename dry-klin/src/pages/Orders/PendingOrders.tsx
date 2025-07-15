@@ -26,7 +26,8 @@ const PendingOrders = () => {
     loading, 
     error, 
     updateOrderStatus, 
-    fetchPendingOrders 
+    fetchPendingOrders,
+    confirmOrder
   } = useOrders();
 
   // Load initial data when component mounts
@@ -78,6 +79,17 @@ const PendingOrders = () => {
       fetchPendingOrders();
     } catch (error) {
       console.error('Error updating order:', error);
+    }
+  };
+
+  const handleConfirmOrder = async (orderId: string) => {
+    try {
+      await confirmOrder(orderId);
+      setIsDetailsModalOpen(false);
+      // Refresh data after confirmation
+      fetchPendingOrders();
+    } catch (error) {
+      console.error('Error confirming order:', error);
     }
   };
 
@@ -344,6 +356,7 @@ const PendingOrders = () => {
           isOpen={isDetailsModalOpen}
           onClose={() => setIsDetailsModalOpen(false)}
           onUpdate={handleUpdateOrder}
+          onConfirm={handleConfirmOrder}
         />
       )}
     </div>

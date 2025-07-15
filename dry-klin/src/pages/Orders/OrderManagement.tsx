@@ -29,7 +29,8 @@ const OrderManagement = () => {
     error, 
     updateOrderStatus, 
     fetchOrders, 
-    fetchOrderHistory 
+    fetchOrderHistory,
+    confirmOrder
   } = useOrders();
 
   // Load initial data when component mounts
@@ -95,6 +96,21 @@ const OrderManagement = () => {
       }
     } catch (error) {
       console.error('Error updating order:', error);
+    }
+  };
+
+  const handleConfirmOrder = async (orderId: string) => {
+    try {
+      await confirmOrder(orderId);
+      setIsDetailsModalOpen(false);
+      // Refresh data after confirmation
+      if (activeTab === 'all-orders') {
+        fetchOrders();
+      } else {
+        fetchOrderHistory();
+      }
+    } catch (error) {
+      console.error('Error confirming order:', error);
     }
   };
 
@@ -413,6 +429,7 @@ const OrderManagement = () => {
           isOpen={isDetailsModalOpen}
           onClose={() => setIsDetailsModalOpen(false)}
           onUpdate={handleUpdateOrder}
+          onConfirm={handleConfirmOrder}
         />
       )}
     </div>

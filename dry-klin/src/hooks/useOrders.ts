@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getAllOrders, getOrderById, updateOrder, getOrderHistory, createPendingOrder, getPendingOrders } from '@/services/features/orderService';
+import { getAllOrders, getOrderById, updateOrder, getOrderHistory, createPendingOrder, getPendingOrders, confirmOrder } from '@/services/features/orderService';
 import { IOrder, IPendingOrderRequest } from '@/types/dashboard_types';
 
 export const useOrders = () => {
@@ -104,6 +104,33 @@ export const useOrders = () => {
     }
   }, []);
 
+  const confirmOrderById = useCallback(async (orderId: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const confirmedOrder = await confirmOrder(orderId);
+      
+      // Update the orders list with the confirmed order
+      setOrders(prevOrders => 
+        prevOrders.map(order => 
+          order.id === orderId ? confirmedOrder : order
+        )
+      );
+      
+      // Update pending orders list if it exists
+      setPendingOrders(prevPendingOrders => 
+        prevPendingOrders.filter(order => order.id !== orderId)
+      );
+      
+      return confirmedOrder;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to confirm order');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
@@ -120,5 +147,6 @@ export const useOrders = () => {
     fetchOrderById,
     updateOrderStatus,
     createPendingOrder: createNewPendingOrder,
+    confirmOrder: confirmOrderById,
   };
 }; 
