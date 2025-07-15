@@ -130,7 +130,7 @@ const PendingOrderForm: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Items*
                 </label>
-                {values.items.map((item, index) => (
+                {values.items.map((_, index) => (
                   <div key={index} className="flex gap-2 mb-2">
                     <Field
                       as={Input}

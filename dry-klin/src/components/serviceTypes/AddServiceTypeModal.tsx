@@ -14,13 +14,13 @@ interface AddServiceTypeModalProps {
 }
 
 const validationSchema = Yup.object({
-  name: Yup.string().required("Service type name is required"),
+  laundryServiceTypeName: Yup.string().required("Service type name is required"),
   description: Yup.string(),
   price: Yup.number().min(0, "Price must be positive or zero"),
 });
 
 const initialValues: IServiceTypeRequest = {
-  name: "",
+  laundryServiceTypeName: "",
   description: "",
   price: undefined,
 };
@@ -74,20 +74,20 @@ const AddServiceTypeModal: React.FC<AddServiceTypeModalProps> = ({
           {({ errors, touched }) => (
             <Form className="space-y-4">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="laundryServiceTypeName" className="block text-sm font-medium text-gray-700 mb-1">
                   Service Type Name*
                 </label>
                 <Field
                   as={Input}
-                  id="name"
-                  name="name"
+                  id="laundryServiceTypeName"
+                  name="laundryServiceTypeName"
                   placeholder="Enter service type name"
                   className={`w-full px-3 py-2 border ${
-                    errors.name && touched.name ? "border-red-500" : "border-gray-300"
+                    errors.laundryServiceTypeName && touched.laundryServiceTypeName ? "border-red-500" : "border-gray-300"
                   } rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500/20`}
                 />
                 <ErrorMessage
-                  name="name"
+                  name="laundryServiceTypeName"
                   component="div"
                   className="text-red-500 text-xs mt-1"
                 />

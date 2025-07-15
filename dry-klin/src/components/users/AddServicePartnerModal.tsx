@@ -5,6 +5,7 @@ import { AddServicePartner } from "@/services/features/servicePartnerService";
 import { useDispatch } from 'react-redux';
 import { AppDispatch } from '@/store';
 import { fetchServicePartners } from '@/services/features/servicePartnerSlice';
+import { IServicePartner } from '@/types/dashboard_types';
 
 interface AddServicePartnerModalProps {
   isOpen: boolean;
@@ -47,7 +48,7 @@ const AddServicePartnerModal = ({ isOpen, onClose }: AddServicePartnerModalProps
     
     try {
       // Make the actual API call to add the service partner
-      await AddServicePartner(formData);
+      await AddServicePartner(formData as IServicePartner);
       
       // Refresh the service partners list
       dispatch(fetchServicePartners());

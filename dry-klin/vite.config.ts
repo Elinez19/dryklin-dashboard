@@ -35,7 +35,7 @@ export default defineConfig({
           proxy.on('error', (err) => {
             console.log('proxy error', err);
           });
-          proxy.on('proxyReq', (proxyReq, req) => {
+          proxy.on('proxyReq', (_, req) => {
             console.log('Sending Request:', req.method, req.url);
           });
           proxy.on('proxyRes', (proxyRes, req) => {
