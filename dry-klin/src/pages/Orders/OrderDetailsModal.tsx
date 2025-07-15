@@ -1,26 +1,18 @@
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useState } from 'react';
+import { IOrder } from '@/types/dashboard_types';
 
 interface OrderDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  order: Order | null;
-  onUpdate: (orderId: string, updates: Partial<Order>) => void;
-}
-
-interface Order {
-  id: string;
-  customerName: string;
-  email: string;
-  serviceType: string;
-  orderStatus: 'IN PROGRESS' | 'PROCESSING' | 'COMPLETED' | 'CANCELLED' | 'SUCCESSFUL';
-  paymentStatus: 'PAID' | 'PENDING' | 'PROCESSING';
+  order: IOrder | null;
+  onUpdate: (orderId: string, updates: Partial<IOrder>) => void;
 }
 
 const OrderDetailsModal = ({ isOpen, onClose, order, onUpdate }: OrderDetailsModalProps) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editedOrder, setEditedOrder] = useState<Order | null>(null);
+  const [editedOrder, setEditedOrder] = useState<IOrder | null>(null);
 
   // Initialize edited order when modal opens
   useState(() => {
@@ -89,13 +81,13 @@ const OrderDetailsModal = ({ isOpen, onClose, order, onUpdate }: OrderDetailsMod
               {isEditing ? (
                 <input
                   type="email"
-                  name="email"
-                  value={editedOrder?.email}
+                  name="customerEmail"
+                  value={editedOrder?.customerEmail}
                   onChange={handleChange}
                   className="w-full px-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20"
                 />
               ) : (
-                <p className="text-sm text-gray-900">{order.email}</p>
+                <p className="text-sm text-gray-900">{order.customerEmail}</p>
               )}
             </div>
 
@@ -129,7 +121,8 @@ const OrderDetailsModal = ({ isOpen, onClose, order, onUpdate }: OrderDetailsMod
                   onChange={handleChange}
                   className="w-full px-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20"
                 >
-                  <option value="IN PROGRESS">In Progress</option>
+                  <option value="PENDING">Pending</option>
+                  <option value="IN_PROGRESS">In Progress</option>
                   <option value="PROCESSING">Processing</option>
                   <option value="COMPLETED">Completed</option>
                   <option value="CANCELLED">Cancelled</option>

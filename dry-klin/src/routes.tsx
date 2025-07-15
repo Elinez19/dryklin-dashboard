@@ -23,6 +23,7 @@ import ServiceTypes from "./pages/ServiceTypes/ServiceTypes";
 import ViewServiceTypes from "./pages/ServiceTypes/ViewServiceTypes";
 import Services from "./pages/Services/Services";
 import AddServiceType from './pages/ServiceTypes/AddServiceType';
+import TestOrders from './pages/Orders/TestOrders';
 import { ProtectedRoute, RedirectIfAuthenticated } from "./helpers/helpers.functions";
 
 const router = createBrowserRouter([
@@ -98,6 +99,10 @@ const router = createBrowserRouter([
       {
         path: "services",
         element: <Services />,
+      },
+      {
+        path: "test-orders",
+        element: <TestOrders />,
       },
     ],
   },

@@ -57,3 +57,45 @@ export interface IServiceTypesResponse {
   debugMessage: string;
   time: string;
 } 
+
+// Order Types
+export interface IOrderItem {
+  itemName: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+}
+
+export interface IOrder {
+  id: string;
+  customerId: string;
+  sessionId: string;
+  normalDeliveryModePrice: number;
+  expressDeliveryModePrice: number;
+  serviceFee: number;
+  serviceType: string;
+  items: IOrderItem[];
+  totalAmount: number;
+  deliveryMode: 'NORMAL' | 'EXPRESS';
+  pickupLocation: string;
+  customerName: string;
+  customerEmail: string;
+  phoneNumber: string;
+  deliveryLocation: string;
+  orderStatus: 'PENDING' | 'IN_PROGRESS' | 'PROCESSING' | 'COMPLETED' | 'CANCELLED' | 'SUCCESSFUL';
+  paymentStatus: 'PENDING' | 'PAID' | 'PROCESSING';
+  checkedOut: boolean;
+  expressServiceFee: number;
+  normalServiceFee: number;
+  message: string;
+  orderDate: string;
+  deliveryDate: string;
+}
+
+export interface IOrdersResponse {
+  data: IOrder[];
+  httpStatus: string;
+  message: string;
+  debugMessage: string;
+  time: string;
+} 

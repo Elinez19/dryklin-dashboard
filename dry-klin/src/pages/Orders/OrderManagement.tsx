@@ -9,127 +9,69 @@ import {
 import avatar from "../../assets/images/Avatar.png";
 import NotificationBell from '@/components/common/NotificationBell';
 import OrderDetailsModal from './OrderDetailsModal';
-
-interface Order extends Record<string, unknown> {
-  id: string;
-  customerName: string;
-  email: string;
-  serviceType: string;
-  orderStatus: 'IN PROGRESS' | 'PROCESSING' | 'COMPLETED' | 'CANCELLED' | 'SUCCESSFUL';
-  paymentStatus: 'PAID' | 'PENDING' | 'PROCESSING';
-}
+import { useOrders } from '@/hooks/useOrders';
+import { IOrder } from '@/types/dashboard_types';
 
 const OrderManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [dateFilter, setDateFilter] = useState('Last 7 Days');
   const [statusFilter, setStatusFilter] = useState('All');
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const unreadCount = 3;
 
-  // Filter orders based on status
-  const filterOrders = (orders: Order[]) => {
-    if (statusFilter === 'All') return orders;
-    return orders.filter(order => order.orderStatus === statusFilter.toUpperCase());
+  const { orders: apiOrders, loading, error, updateOrderStatus } = useOrders();
+
+  // Filter orders based on status and search query
+  const filterOrders = (ordersData: IOrder[]) => {
+    let filtered = ordersData;
+    
+    // Filter by status
+    if (statusFilter !== 'All') {
+      const statusMap: Record<string, string> = {
+        'In Progress': 'IN_PROGRESS',
+        'Completed': 'COMPLETED',
+        'Cancelled': 'CANCELLED',
+        'Processing': 'PROCESSING',
+        'Successful': 'SUCCESSFUL',
+        'Pending': 'PENDING'
+      };
+      const targetStatus = statusMap[statusFilter] || statusFilter.toUpperCase();
+      filtered = filtered.filter(order => order.orderStatus === targetStatus);
+    }
+    
+    // Filter by search query
+    if (searchQuery) {
+      filtered = filtered.filter(order => 
+        order.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        order.customerEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        order.id.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    
+    return filtered;
   };
 
-  const handleViewDetails = (order: Order) => {
+  const handleViewDetails = (order: IOrder) => {
     setSelectedOrder(order);
     setIsDetailsModalOpen(true);
   };
 
-  const handleUpdateOrder = (orderId: string, updates: Partial<Order>) => {
-    // Here you would typically make an API call to update the order
-    console.log('Updating order:', orderId, updates);
-    setIsDetailsModalOpen(false);
+  const handleUpdateOrder = async (orderId: string, updates: Partial<IOrder>) => {
+    try {
+      await updateOrderStatus(orderId, updates);
+      setIsDetailsModalOpen(false);
+    } catch (error) {
+      console.error('Error updating order:', error);
+    }
   };
 
-  const orders: Order[] = [
-    {
-      id: '0081727',
-      customerName: 'Chinedu Okafor',
-      email: 'olivia@untitledui.com',
-      serviceType: 'Normal/Express',
-      orderStatus: 'IN PROGRESS',
-      paymentStatus: 'PAID',
-    },
-    {
-      id: '0081727',
-      customerName: 'Amina Bello',
-      email: 'phoenix@untitledui.com',
-      serviceType: 'Normal/Express',
-      orderStatus: 'SUCCESSFUL',
-      paymentStatus: 'PROCESSING',
-    },
-    {
-      id: '0081727',
-      customerName: 'Emeka Nwosu',
-      email: 'lana@untitledui.com',
-      serviceType: 'Normal/Express',
-      orderStatus: 'IN PROGRESS',
-      paymentStatus: 'PAID',
-    },
-    {
-      id: '0081727',
-      customerName: 'Fatima Abubakar',
-      email: 'demi@untitledui.com',
-      serviceType: 'Quick Pickup',
-      orderStatus: 'COMPLETED',
-      paymentStatus: 'PENDING',
-    },
-    {
-      id: '0081727',
-      customerName: 'Tunde Adeyemi',
-      email: 'candice@untitledui.com',
-      serviceType: 'Normal/Express',
-      orderStatus: 'IN PROGRESS',
-      paymentStatus: 'PAID',
-    },
-    {
-      id: '0081727',
-      customerName: 'Ngozi Ibe',
-      email: 'natali@untitledui.com',
-      serviceType: 'Quick Pickup',
-      orderStatus: 'CANCELLED',
-      paymentStatus: 'PAID',
-    },
-    {
-      id: '0081727',
-      customerName: 'Ifeoma Uche',
-      email: 'drew@untitledui.com',
-      serviceType: 'Normal/Express',
-      orderStatus: 'COMPLETED',
-      paymentStatus: 'PAID',
-    },
-    {
-      id: '0081727',
-      customerName: 'Kelechi Eze',
-      email: 'orlando@untitledui.com',
-      serviceType: 'Normal/Express',
-      orderStatus: 'COMPLETED',
-      paymentStatus: 'PAID',
-    },
-    {
-      id: '0081727',
-      customerName: 'Zainab Ibrahim',
-      email: 'andi@untitledui.com',
-      serviceType: 'Quick Pickup',
-      orderStatus: 'SUCCESSFUL',
-      paymentStatus: 'PAID',
-    },
-    {
-      id: '0081727',
-      customerName: 'Chijioke Obi',
-      email: 'kate@untitledui.com',
-      serviceType: 'Normal/Express',
-      orderStatus: 'COMPLETED',
-      paymentStatus: 'PAID',
-    },
-  ];
+  // Use API orders data
+  const orders = apiOrders;
 
-  const getStatusStyle = (status: Order['orderStatus']) => {
+  const getStatusStyle = (status: IOrder['orderStatus']) => {
     switch (status) {
-      case 'IN PROGRESS':
+      case 'IN_PROGRESS':
         return 'bg-orange-100/50 text-orange-800';
       case 'PROCESSING':
         return 'bg-yellow-100/50 text-yellow-800';
@@ -139,12 +81,14 @@ const OrderManagement = () => {
         return 'bg-red-100/50 text-red-800';
       case 'SUCCESSFUL':
         return 'bg-green-100/50 text-green-800';
+      case 'PENDING':
+        return 'bg-blue-100/50 text-blue-800';
       default:
         return 'bg-gray-100/50 text-gray-800';
     }
   };
 
-  const getPaymentStatusStyle = (status: Order['paymentStatus']) => {
+  const getPaymentStatusStyle = (status: IOrder['paymentStatus']) => {
     switch (status) {
       case 'PAID':
         return 'bg-green-100 text-green-800';
@@ -155,6 +99,28 @@ const OrderManagement = () => {
         return 'bg-gray-100 text-gray-800';
     }
   };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="p-0">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-lg">Loading orders...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="p-0">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-lg text-red-600">Error: {error}</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-0">
@@ -291,7 +257,7 @@ const OrderManagement = () => {
                       </td>
                       <td className="px-4 py-4 text-sm whitespace-nowrap">{order.id}</td>
                       <td className="px-4 py-4 text-sm whitespace-nowrap">{order.customerName}</td>
-                      <td className="px-4 py-4 text-sm whitespace-nowrap">{order.email}</td>
+                                              <td className="px-4 py-4 text-sm whitespace-nowrap">{order.customerEmail}</td>
                       <td className="px-4 py-4 text-sm whitespace-nowrap">{order.serviceType}</td>
                       <td className="px-4 py-4 text-sm whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 rounded-full text-xs ${getStatusStyle(order.orderStatus)}`}>
