@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { BellIcon, CheckIcon } from 'lucide-react';
+import { CheckIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import avatar from "../../assets/images/Avatar.png";
+import UserHeader from '@/components/common/UserHeader';
 
 type Tab = 'log' | 'configuration' | 'settings';
 
@@ -238,23 +238,7 @@ const Notifications = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 md:gap-4">
         <h1 className="text-lg md:text-2xl font-bold">Notifications</h1>
-        <div className="flex items-center justify-between md:justify-end gap-2 md:gap-4">
-          <button className="relative inline-flex items-center justify-center text-gray-500 transition-colors hover:text-gray-700">
-            <BellIcon className="w-6 h-6" />
-            <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#FF5C00] rounded-full"></span>
-          </button>
-          <div className="flex items-center gap-3">
-            <img
-              src={avatar}
-              alt="Profile"
-              className="w-8 h-8 rounded-full"
-            />
-            <div>
-              <div className="text-sm font-medium">Olivia Rhye</div>
-              <div className="text-xs text-gray-500">olivia@untitledui.com</div>
-            </div>
-          </div>
-        </div>
+        <UserHeader unreadCount={3} showNotificationBell={false} />
       </div>
 
       {/* Tabs */}

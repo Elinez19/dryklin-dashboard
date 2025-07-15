@@ -1,17 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, PencilIcon, BellIcon } from 'lucide-react';
+import { ChevronLeft, PencilIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { cn } from '@/lib/utils';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
-import avatar from "../../assets/images/Avatar.png";
+import UserHeader from '@/components/common/UserHeader';
 
 interface EditSubAdminProfileProps {
   onBack: () => void;
@@ -25,14 +17,6 @@ interface SubAdminData {
   initials: string;
 }
 
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  time: string;
-  isRead: boolean;
-}
-
 const EditSubAdminProfile = ({ onBack }: EditSubAdminProfileProps) => {
   const navigate = useNavigate();
   const [isSaveConfirmOpen, setIsSaveConfirmOpen] = useState(false);
@@ -44,39 +28,7 @@ const EditSubAdminProfile = ({ onBack }: EditSubAdminProfileProps) => {
     initials: 'SI'
   });
 
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: '1',
-      title: 'Profile Update',
-      message: 'Your profile has been updated successfully',
-      time: '5 mins ago',
-      isRead: false,
-    },
-    {
-      id: '2',
-      title: 'Security Alert',
-      message: 'New login detected from unknown device',
-      time: '1 hour ago',
-      isRead: false,
-    },
-    {
-      id: '3',
-      title: 'System Update',
-      message: 'System maintenance scheduled for tonight',
-      time: '2 hours ago',
-      isRead: true,
-    },
-  ]);
-
-  const unreadCount = notifications.filter(n => !n.isRead).length;
-
-  const markAsRead = (notificationId: string) => {
-    setNotifications(notifications.map(notification => 
-      notification.id === notificationId 
-        ? { ...notification, isRead: true }
-        : notification
-    ));
-  };
+  const unreadCount = 3; // Default notification count
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -92,7 +44,6 @@ const EditSubAdminProfile = ({ onBack }: EditSubAdminProfileProps) => {
 
   const confirmSave = () => {
     // Here you would make an API call to update the sub-admin's profile
-    console.log('Saving profile changes:', formData);
     navigate('/admins');
   };
 
@@ -110,61 +61,7 @@ const EditSubAdminProfile = ({ onBack }: EditSubAdminProfileProps) => {
           </button>
           <h1 className="text-lg md:text-2xl font-bold">Profile</h1>
         </div>
-        <div className="flex items-center justify-between md:justify-end gap-2 md:gap-4">
-          <DropdownMenu>
-            <DropdownMenuTrigger className="relative inline-flex items-center justify-center text-gray-500 transition-colors bg-white border border-gray-200 rounded-full hover:text-gray-700 h-8 w-8 md:h-11 md:w-11 hover:bg-gray-100">
-              <BellIcon className="w-4 h-4 md:w-5 md:h-5" />
-              {unreadCount > 0 && (
-                <Badge 
-                  variant="destructive" 
-                  className="absolute -top-1 -right-1 min-w-[16px] md:min-w-[18px] h-[16px] md:h-[18px] flex items-center justify-center p-0 text-[9px] md:text-[10px]"
-                >
-                  {unreadCount}
-                </Badge>
-              )}
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[250px] md:w-80">
-              <div className="p-2">
-                <h3 className="text-xs md:text-sm font-medium px-2 py-1">Notifications</h3>
-                <div className="mt-1 md:mt-2 space-y-0.5 md:space-y-1">
-                  {notifications.map((notification) => (
-                    <DropdownMenuItem
-                      key={notification.id}
-                      className={cn(
-                        "flex flex-col items-start gap-0.5 md:gap-1 p-1.5 md:p-2 cursor-pointer",
-                        !notification.isRead && "bg-orange-50"
-                      )}
-                      onClick={() => markAsRead(notification.id)}
-                    >
-                      <div className="flex items-center justify-between w-full">
-                        <span className="font-medium text-xs md:text-sm">{notification.title}</span>
-                        <span className="text-[10px] md:text-xs text-gray-500">{notification.time}</span>
-                      </div>
-                      <p className="text-[10px] md:text-xs text-gray-600">{notification.message}</p>
-                    </DropdownMenuItem>
-                  ))}
-                </div>
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <div className="flex items-center gap-1.5 md:gap-3">
-            <img
-              src={avatar}
-              alt="Profile"
-              className="w-7 h-7 md:w-8 md:h-8 rounded-full"
-            />
-            <div className="hidden md:block">
-              <div className="text-sm font-medium">Olivia Rhye</div>
-              <div className="text-xs text-gray-500">olivia@untitledui.com</div>
-            </div>
-          </div>
-          <button 
-            onClick={() => navigate('/signin')}
-            className="text-red-500 hover:text-red-600 text-sm font-medium"
-          >
-            Log Out
-          </button>
-        </div>
+        <UserHeader unreadCount={unreadCount} showNotificationBell={false} />
       </div>
 
       {/* Profile Section */}

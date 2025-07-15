@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Formik, Form, Field, ErrorMessage } from "formik";
+import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
 import { useServiceTypes } from "@/hooks/useServiceTypes";
 
@@ -26,7 +26,6 @@ const AddServiceType: React.FC = () => {
   const handleSubmit = async (values: typeof initialValues) => {
     try {
       setIsSubmitting(true);
-      // Only send the required fields to the API
       const payload: typeof initialValues = {
         laundryServiceTypeName: values.laundryServiceTypeName,
         description: values.description,
@@ -69,11 +68,6 @@ const AddServiceType: React.FC = () => {
                     errors.laundryServiceTypeName && touched.laundryServiceTypeName ? "border-red-500" : "border-gray-300"
                   } rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500/20`}
                 />
-                <ErrorMessage
-                  name="laundryServiceTypeName"
-                  component="div"
-                  className="text-red-500 text-xs mt-1"
-                />
               </div>
               <div>
                 <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
@@ -89,11 +83,6 @@ const AddServiceType: React.FC = () => {
                     errors.description && touched.description ? "border-red-500" : "border-gray-300"
                   } rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500/20`}
                 />
-                <ErrorMessage
-                  name="description"
-                  component="div"
-                  className="text-red-500 text-xs mt-1"
-                />
               </div>
               <div>
                 <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
@@ -108,11 +97,6 @@ const AddServiceType: React.FC = () => {
                   className={`w-full px-3 py-2 border ${
                     errors.price && touched.price ? "border-red-500" : "border-gray-300"
                   } rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500/20`}
-                />
-                <ErrorMessage
-                  name="price"
-                  component="div"
-                  className="text-red-500 text-xs mt-1"
                 />
               </div>
               {addError && (

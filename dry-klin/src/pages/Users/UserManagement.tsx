@@ -7,10 +7,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import avatar from "../../assets/images/Avatar.png";
 import UserDetails from './UserDetails';
 import AddServicePartnerModal from '@/components/users/AddServicePartnerModal';
-import NotificationBell from '@/components/common/NotificationBell';
+import UserHeader from '@/components/common/UserHeader';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '@/store';
@@ -249,26 +248,7 @@ const UserManagement = () => {
     <div className="p-2 sm:p-4 md:p-6 space-y-4 sm:space-y-6 pt-14 md:pt-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
         <h1 className="text-lg sm:text-xl md:text-2xl font-bold">User Management</h1>
-        <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-4">
-          <NotificationBell unreadCount={unreadCount} />
-          <div className="flex items-center gap-1.5 sm:gap-3">
-            <img
-              src={avatar}
-              alt="Profile"
-              className="w-7 h-7 sm:w-8 sm:h-8 rounded-full"
-            />
-            <div className="hidden sm:block">
-              <div className="text-sm font-medium">Olivia Rhye</div>
-              <div className="text-xs text-gray-500">olivia@untitledui.com</div>
-            </div>
-          </div>
-          <button 
-            onClick={() => navigate('/signin')}
-            className="text-red-500 hover:text-red-600 text-xs sm:text-sm font-medium"
-          >
-            Log Out
-          </button>
-        </div>
+        <UserHeader unreadCount={unreadCount} />
       </div>
 
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden max-w-full">

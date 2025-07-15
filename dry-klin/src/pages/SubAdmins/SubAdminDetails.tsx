@@ -1,10 +1,9 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { ChevronLeft, PencilIcon } from 'lucide-react';
+import { ChevronLeft, PencilIcon, UserCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import avatar from "../../assets/images/Avatar.png";
 import ConfirmationModal from '@/components/common/ConfirmationModal';
 import { useState } from 'react';
-import NotificationBell from '@/components/common/NotificationBell';
+import UserHeader from '@/components/common/UserHeader';
 
 interface SubAdminDetailsProps {
   onBack: () => void;
@@ -45,23 +44,29 @@ const SubAdminDetails = ({ onBack }: SubAdminDetailsProps) => {
     navigate(`/admins/${id}/edit`);
   };
 
-  const handleDelete = () => {
-    setIsDeleteConfirmOpen(true);
+  const handleDelete = async () => {
+    try {
+      // Delete functionality will be implemented
+    } catch {
+      // Handle error
+    }
   };
 
   const confirmDelete = () => {
     // Here you would make an API call to delete the sub-admin
-    console.log('Deleting sub-admin');
     navigate('/admins');
   };
 
-  const handleDeactivate = () => {
-    setIsDeactivateConfirmOpen(true);
+  const handleDeactivate = async () => {
+    try {
+      // Deactivate functionality will be implemented
+    } catch {
+      // Handle error
+    }
   };
 
   const confirmDeactivate = () => {
     // Here you would make an API call to deactivate the sub-admin
-    console.log('Deactivating sub-admin');
     navigate('/admins');
   };
 
@@ -79,35 +84,14 @@ const SubAdminDetails = ({ onBack }: SubAdminDetailsProps) => {
           </button>
           <h1 className="text-lg md:text-2xl font-bold">Profile</h1>
         </div>
-        <div className="flex items-center justify-between md:justify-end gap-2 md:gap-4">
-          <NotificationBell unreadCount={unreadCount} />
-          <div className="flex items-center gap-1.5 md:gap-3">
-            <img
-              src={avatar}
-              alt="Profile"
-              className="w-7 h-7 md:w-8 md:h-8 rounded-full"
-            />
-            <div className="hidden md:block">
-              <div className="text-sm font-medium">Olivia Rhye</div>
-              <div className="text-xs text-gray-500">olivia@untitledui.com</div>
-            </div>
-          </div>
-          <button 
-            onClick={() => navigate('/signin')}
-            className="text-red-500 hover:text-red-600 text-sm font-medium"
-          >
-            Log Out
-          </button>
-        </div>
+        <UserHeader unreadCount={unreadCount} />
       </div>
 
       {/* Profile Section */}
       <div className="flex flex-col items-center md:items-start md:flex-row gap-6 md:gap-8">
-        <img
-          src={avatar}
-          alt="Sub-admin Profile"
-          className="w-24 h-24 md:w-32 md:h-32 rounded-full"
-        />
+        <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-gray-100 flex items-center justify-center">
+          <UserCircle className="w-16 h-16 md:w-20 md:h-20 text-gray-400" />
+        </div>
       </div>
 
       {/* Details Form */}

@@ -99,3 +99,25 @@ export interface IOrdersResponse {
   debugMessage: string;
   time: string;
 } 
+
+// Pending Order Types
+export interface IPendingOrderItem {
+  itemName: string;
+  quantity: number;
+}
+
+export interface IPendingOrderRequest {
+  customerName: string;
+  customerEmail: string;
+  serviceType: string;
+  items: IPendingOrderItem[];
+  deliveryModePrice: string;
+}
+
+export interface IPendingOrderResponse {
+  data: IOrder[];
+  httpStatus: string;
+  message: string;
+  debugMessage: string;
+  time: string;
+} 

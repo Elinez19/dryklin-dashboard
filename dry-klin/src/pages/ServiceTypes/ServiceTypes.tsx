@@ -5,10 +5,17 @@ import { useServiceTypes } from "@/hooks/useServiceTypes";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import AddServiceTypeModal from "@/components/serviceTypes/AddServiceTypeModal";
 import Loader from "@/components/common/Loader";
 import ConfirmationModal from "@/components/common/ConfirmationModal";
 import { IServiceType } from "@/types/dashboard_types";
+import { MoreDotIcon } from "@/assets/icons";
 
 const ServiceTypes: React.FC = () => {
   const navigate = useNavigate();
@@ -32,9 +39,10 @@ const ServiceTypes: React.FC = () => {
     navigate("/service-types/view");
   };
 
-  const handleEditClick = (serviceType: IServiceType) => {
+  const handleEditClick = (_serviceType: IServiceType) => {
     // Edit functionality will be implemented in future task
-    console.log("Edit service type:", serviceType);
+    // TODO: Implement edit functionality for service type
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   };
 
   const handleDeleteClick = (id: string) => {
@@ -132,22 +140,34 @@ const ServiceTypes: React.FC = () => {
                     </div>
                   )}
 
-                  <div className="flex justify-end gap-2 pt-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => handleEditClick(serviceType)}
-                      className="text-blue-600 border-blue-600 hover:bg-blue-50"
-                    >
-                      <Pencil size={14} className="mr-1" /> Edit
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => handleDeleteClick(serviceType.id || serviceType.name || '')}
-                      className="text-red-600 border-red-600 hover:bg-red-50"
-                      disabled={deleteLoading}
-                    >
-                      <Trash2 size={14} className="mr-1" /> Delete
-                    </Button>
+                  <div className="flex justify-end pt-2">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          className="h-8 w-8 p-0 hover:bg-gray-100"
+                        >
+                          <MoreDotIcon className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() => handleEditClick(serviceType)}
+                          className="text-blue-600"
+                        >
+                          <Pencil size={14} className="mr-2" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleDeleteClick(serviceType.id || serviceType.name || '')}
+                          className="text-red-600"
+                          disabled={deleteLoading}
+                        >
+                          <Trash2 size={14} className="mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               </CardContent>

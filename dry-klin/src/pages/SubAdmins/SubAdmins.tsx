@@ -9,37 +9,44 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import AddSubAdminModal from './AddSubAdminModal';
-import avatar from "../../assets/images/Avatar.png";
-import NotificationBell from '@/components/common/NotificationBell';
-import { useNavigate } from 'react-router-dom';
-import { ISubAdmin } from '@/services/features/subAdminService';
-import { fetchSubAdmins } from '@/services/features/subAdminSlice';
+import UserHeader from '@/components/common/UserHeader';
+import { fetchSubAdmins, createSubAdmin, clearCreateSubAdminError } from '@/services/features/subAdminSlice';
 import { RootState, AppDispatch } from '@/store';
 import Loader from '@/components/common/Loader';
 import { toast } from 'sonner';
+import { isCurrentUserAdmin } from '@/helpers/helpers.functions';
+import { ICreateSubAdminRequest } from '@/services/features/auth/authService';
 
 const SubAdmins = () => {
-  const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
-  const { subAdmins, subAdminsLoading, subAdminsError } = useSelector((state: RootState) => state.subadmins);
+  const { subAdmins, subAdminsLoading, subAdminsError, createSubAdminLoading, createSubAdminError } = useSelector((state: RootState) => state.subadmins);
   
   const [searchQuery, setSearchQuery] = useState('');
   const [dateFilter, setDateFilter] = useState('Last 7 Days');
   const [, setStatusFilter] = useState('All');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const unreadCount = 3;
 
   // Show toast for error but do not block UI
   useEffect(() => {
     if (subAdminsError) {
-      // If the error message contains the backend message, show it
-      if (subAdminsError.includes('Only admins can perform this action')) {
+      // Check if user is admin and show appropriate message
+      if (!isCurrentUserAdmin()) {
+        toast.error('Only admin users can access sub-admin management');
+      } else if (subAdminsError.includes('Only admins can perform this action')) {
         toast.error('Only admins can perform this action');
       } else {
         toast.error(subAdminsError);
       }
     }
   }, [subAdminsError]);
+
+  // Show toast for create sub-admin errors
+  useEffect(() => {
+    if (createSubAdminError) {
+      toast.error(createSubAdminError);
+      dispatch(clearCreateSubAdminError());
+    }
+  }, [createSubAdminError, dispatch]);
 
   // Fetch sub-admins from API
   const handleFetchSubAdmins = () => {
@@ -50,6 +57,21 @@ const SubAdmins = () => {
     handleFetchSubAdmins();
   }, [dispatch]);
 
+  // Handle creating new sub-admin
+  const handleCreateSubAdmin = async (subAdminData: ICreateSubAdminRequest) => {
+    try {
+      const result = await dispatch(createSubAdmin(subAdminData)).unwrap();
+      if (result.success) {
+        toast.success(result.message || 'Sub-admin created successfully');
+        // Refresh the sub-admins list
+        dispatch(fetchSubAdmins());
+      }
+    } catch (error) {
+      // Error is handled by the Redux slice and shown in useEffect above
+      console.error('Failed to create sub-admin:', error);
+    }
+  };
+
   // Filter sub-admins based on search query
   const filteredSubAdmins = subAdmins.filter(admin =>
     admin.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -57,150 +79,152 @@ const SubAdmins = () => {
     admin.id.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const getStatusStyle = (status: ISubAdmin['status']) => {
-    switch (status) {
-      case 'ACTIVE':
-        return 'bg-green-100 text-green-800';
-      case 'INACTIVE':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   if (subAdminsLoading) {
-    return (
-      <div className="p-2 sm:p-4 md:p-6">
-        <div className="flex items-center justify-center h-64">
-          <Loader />
-        </div>
-      </div>
-    );
+    return <Loader />;
   }
 
-  // Do NOT block UI on error, just show toast
-
   return (
-    <div className="p-2 sm:p-4 md:p-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-8">
-        <div className="flex items-center gap-2">
-          <h1 className="text-lg sm:text-xl md:text-2xl font-semibold">Sub-admins</h1>
-          <span className="px-2 py-1 text-xs font-medium bg-[#FF5C00] bg-opacity-10 text-[#FF5C00] rounded">
-            {subAdmins.length} F202
-          </span>
+    <div className="min-h-screen bg-gray-50">
+      <UserHeader />
+      
+      <div className="p-4 sm:p-6 lg:p-8">
+        <div className="mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Sub-admins</h1>
+          <p className="text-gray-600">Manage your sub-administrators</p>
         </div>
-        <div className="flex items-center justify-between sm:justify-end gap-4 sm:gap-6">
-          <NotificationBell unreadCount={unreadCount} />
-          <div className="flex items-center gap-2 sm:gap-3">
-            <img
-              src={avatar}
-              alt="Profile"
-              className="w-7 h-7 sm:w-8 sm:h-8 rounded-full"
-            />
-            <div className="hidden sm:block">
-              <div className="text-sm font-medium">Olivia Rhye</div>
-              <div className="text-xs text-gray-500">olivia@untitledui.com</div>
+
+        <div className="bg-white rounded-lg border border-gray-200">
+          <div className="p-2 sm:p-4 md:p-6 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="relative w-full sm:w-auto">
+                <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <input
+                  type="text"
+                  placeholder="Search here"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg w-full sm:w-[300px] md:w-[400px] text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+                />
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="text-xs sm:text-sm">
+                      {dateFilter}
+                      <ChevronDownIcon className="ml-2 h-3 w-3 sm:h-4 sm:w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem onClick={() => setDateFilter('Last 7 Days')}>
+                      Last 7 Days
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setDateFilter('Last 30 Days')}>
+                      Last 30 Days
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setDateFilter('Last 90 Days')}>
+                      Last 90 Days
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="text-xs sm:text-sm">
+                      All
+                      <ChevronDownIcon className="ml-2 h-3 w-3 sm:h-4 sm:w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem onClick={() => setStatusFilter('All')}>
+                      All
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setStatusFilter('Active')}>
+                      Active
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setStatusFilter('Inactive')}>
+                      Inactive
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <Button 
+                  onClick={() => setIsAddModalOpen(true)}
+                  className="bg-[#FF5C00] hover:bg-[#FF5C00]/90 text-white text-xs sm:text-sm px-4 sm:px-6 py-2 rounded-lg"
+                  disabled={createSubAdminLoading}
+                >
+                  {createSubAdminLoading ? 'Creating...' : 'Add Sub-admin'}
+                </Button>
+              </div>
             </div>
-          </div>
-          <button 
-            onClick={() => navigate('/signin')}
-            className="text-red-500 hover:text-red-600 text-xs sm:text-sm font-medium"
-          >
-            Log Out
-          </button>
-        </div>
-      </div>
 
-      <div className="bg-white rounded-lg border border-gray-200">
-        <div className="p-2 sm:p-4 md:p-6 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="relative w-full sm:w-auto">
-              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <input
-                type="text"
-                placeholder="Search here"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg w-full sm:w-[300px] md:w-[400px] text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20"
-              />
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 sm:gap-4">
-              <div className="text-sm hidden sm:block">Filter:</div>
-              <DropdownMenu>
-                <DropdownMenuTrigger className="flex items-center gap-2 px-3 sm:px-4 py-2 border border-gray-200 rounded-lg text-xs sm:text-sm">
-                  {dateFilter}
-                  <ChevronDownIcon className="h-4 w-4" />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => setDateFilter('Last 7 Days')}>Last 7 Days</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setDateFilter('Last 30 Days')}>Last 30 Days</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setDateFilter('Last 90 Days')}>Last 90 Days</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger className="flex items-center gap-2 px-3 sm:px-4 py-2 border border-gray-200 rounded-lg text-xs sm:text-sm">
-                  Status
-                  <ChevronDownIcon className="h-4 w-4" />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => setStatusFilter('All')}>All</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setStatusFilter('Active')}>Active</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setStatusFilter('Inactive')}>Inactive</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <Button 
-                onClick={() => setIsAddModalOpen(true)}
-                className="bg-[#FF5C00] hover:bg-[#FF5C00]/90 text-white rounded-lg px-3 sm:px-4 py-2 text-xs sm:text-sm whitespace-nowrap"
-              >
-                Add Sub-admin
-              </Button>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto -mx-2 sm:mx-0">
-            <div className="min-w-full inline-block align-middle">
-              <div className="overflow-hidden">
+            <div className="overflow-x-auto">
+              <div className="min-w-full">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead>
+                  <thead className="bg-gray-50">
                     <tr>
-                      <th className="w-4 p-4 sm:p-4">
-                        <input type="checkbox" className="rounded border-gray-300" />
+                      <th className="px-2 sm:px-4 py-2 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">
+                        Name
                       </th>
-                      <th className="px-2 sm:px-4 py-3 text-left text-xs sm:text-sm font-medium text-gray-500">ID</th>
-                      <th className="px-2 sm:px-4 py-3 text-left text-xs sm:text-sm font-medium text-gray-500">Name</th>
-                      <th className="hidden sm:table-cell px-2 sm:px-4 py-3 text-left text-xs sm:text-sm font-medium text-gray-500">Email</th>
-                      <th className="hidden md:table-cell px-2 sm:px-4 py-3 text-left text-xs sm:text-sm font-medium text-gray-500">Role</th>
-                      <th className="px-2 sm:px-4 py-3 text-left text-xs sm:text-sm font-medium text-gray-500">Status</th>
-                      <th className="hidden sm:table-cell px-2 sm:px-4 py-3 text-left text-xs sm:text-sm font-medium text-gray-500">Last Active</th>
-                      <th className="px-2 sm:px-4 py-3 text-left text-xs sm:text-sm font-medium text-gray-500"></th>
+                      <th className="px-2 sm:px-4 py-2 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">
+                        Email
+                      </th>
+                      <th className="px-2 sm:px-4 py-2 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">
+                        Role
+                      </th>
+                      <th className="px-2 sm:px-4 py-2 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-2 sm:px-4 py-2 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">
+                        Last Active
+                      </th>
+                      <th className="px-2 sm:px-4 py-2 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="bg-white divide-y divide-gray-200">
                     {filteredSubAdmins.length === 0 ? (
                       <tr>
-                        <td colSpan={8} className="px-2 sm:px-4 py-8 text-center text-gray-500">
-                          {searchQuery ? 'No sub-admins found matching your search.' : 'No sub-admins found.'}
+                        <td colSpan={6} className="px-2 sm:px-4 py-4 text-center text-sm text-gray-500">
+                          {subAdminsLoading ? 'Loading sub-admins...' : 'No sub-admins found.'}
                         </td>
                       </tr>
                     ) : (
-                      filteredSubAdmins.map((admin, index) => (
-                        <tr key={admin.id || index} className="hover:bg-gray-50">
-                          <td className="w-4 p-2 sm:p-4">
-                            <input type="checkbox" className="rounded border-gray-300" />
-                          </td>
-                          <td className="px-2 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm whitespace-nowrap">{admin.id}</td>
-                          <td className="px-2 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm whitespace-nowrap">{admin.name}</td>
-                          <td className="hidden sm:table-cell px-2 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm whitespace-nowrap">{admin.email}</td>
-                          <td className="hidden md:table-cell px-2 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm whitespace-nowrap">{admin.role}</td>
+                      filteredSubAdmins.map((admin) => (
+                        <tr key={admin.id} className="hover:bg-gray-50">
                           <td className="px-2 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm whitespace-nowrap">
-                            <span className={`inline-flex px-2 py-1 rounded-full text-xs ${getStatusStyle(admin.status)}`}>
+                            <div className="flex items-center">
+                              <div className="flex-shrink-0 h-8 w-8">
+                                <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
+                                  <span className="text-xs font-medium text-gray-700">
+                                    {admin.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="ml-3">
+                                <div className="text-xs sm:text-sm font-medium text-gray-900">{admin.name}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-2 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm whitespace-nowrap text-gray-500">
+                            {admin.email}
+                          </td>
+                          <td className="px-2 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm whitespace-nowrap text-gray-500">
+                            {admin.role}
+                          </td>
+                          <td className="px-2 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm whitespace-nowrap">
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              admin.status === 'ACTIVE' 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-red-100 text-red-800'
+                            }`}>
                               {admin.status}
                             </span>
                           </td>
-                          <td className="hidden sm:table-cell px-2 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm whitespace-nowrap">{admin.lastActive}</td>
+                          <td className="px-2 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm whitespace-nowrap text-gray-500">
+                            {admin.lastActive}
+                          </td>
                           <td className="px-2 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm whitespace-nowrap">
                             <button className="text-[#FF5C00] hover:text-[#FF5C00]/80">View Details</button>
                           </td>
@@ -218,14 +242,11 @@ const SubAdmins = () => {
               <button className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 text-xs sm:text-sm text-gray-600 hover:text-gray-800 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                 <span>Previous</span>
               </button>
-              <div className="flex items-center gap-1 overflow-x-auto">
-                <button className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm bg-orange-50 text-[#FF5C00] rounded-lg border border-orange-200">1</button>
-                <button className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm text-gray-600 hover:text-gray-800 rounded-lg border border-transparent hover:border-gray-200 hover:bg-gray-50 transition-colors">2</button>
-                <button className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm text-gray-600 hover:text-gray-800 rounded-lg border border-transparent hover:border-gray-200 hover:bg-gray-50 transition-colors">3</button>
-                <span className="px-2 text-gray-400">...</span>
-                <button className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm text-gray-600 hover:text-gray-800 rounded-lg border border-transparent hover:border-gray-200 hover:bg-gray-50 transition-colors">8</button>
-                <button className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm text-gray-600 hover:text-gray-800 rounded-lg border border-transparent hover:border-gray-200 hover:bg-gray-50 transition-colors">9</button>
-                <button className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm text-gray-600 hover:text-gray-800 rounded-lg border border-transparent hover:border-gray-200 hover:bg-gray-50 transition-colors">10</button>
+              <div className="flex items-center gap-2">
+                <span className="text-xs sm:text-sm text-gray-700">Page</span>
+                <span className="text-xs sm:text-sm font-medium">1</span>
+                <span className="text-xs sm:text-sm text-gray-700">of</span>
+                <span className="text-xs sm:text-sm font-medium">1</span>
               </div>
               <button className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 text-xs sm:text-sm text-gray-600 hover:text-gray-800 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                 <span>Next</span>
@@ -238,12 +259,7 @@ const SubAdmins = () => {
       <AddSubAdminModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        onSubmit={(data) => {
-          console.log('New sub-admin data:', data);
-          setIsAddModalOpen(false);
-          // Refresh the list after adding a new sub-admin
-          handleFetchSubAdmins();
-        }}
+        onSubmit={handleCreateSubAdmin}
       />
     </div>
   );

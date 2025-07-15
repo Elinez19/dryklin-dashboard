@@ -9,6 +9,7 @@ import CreatePassword from "./pages/AuthPages/CreatePassword";
 import CustomerRegistration from "./pages/AuthPages/CustomerRegistration";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import OrderManagement from "./pages/Orders/OrderManagement";
+import PendingOrders from "./pages/Orders/PendingOrders";
 import UserManagement from "./pages/Users/UserManagement";
 import UserDetails from "./pages/Users/UserDetails";
 import Analytics from "./pages/Analytics/Analytics";
@@ -23,7 +24,6 @@ import ServiceTypes from "./pages/ServiceTypes/ServiceTypes";
 import ViewServiceTypes from "./pages/ServiceTypes/ViewServiceTypes";
 import Services from "./pages/Services/Services";
 import AddServiceType from './pages/ServiceTypes/AddServiceType';
-import TestOrders from './pages/Orders/TestOrders';
 import { ProtectedRoute, RedirectIfAuthenticated } from "./helpers/helpers.functions";
 
 const router = createBrowserRouter([
@@ -42,6 +42,10 @@ const router = createBrowserRouter([
       {
         path: "orders",
         element: <OrderManagement />,
+      },
+      {
+        path: "pending-orders",
+        element: <PendingOrders />,
       },
       {
         path: "users",
@@ -99,10 +103,6 @@ const router = createBrowserRouter([
       {
         path: "services",
         element: <Services />,
-      },
-      {
-        path: "test-orders",
-        element: <TestOrders />,
       },
     ],
   },

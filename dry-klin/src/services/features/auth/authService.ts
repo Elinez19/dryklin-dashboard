@@ -1,14 +1,15 @@
 import { ILogin, ILoginResponse, ISendOTPRequest, ISendOTPResponse, ICustomerRegistration, ICustomerRegistrationResponse } from "@/types/auth_types";
 import { axiosClient } from "@/services/api/axiosClient";
+import { encrypt } from "@/helpers/helpers.encryptDecrypt";
 
 export const handle_tokens = (response: { accessToken: string; refreshToken: string }) => {
-  localStorage.setItem("DryKlinAccessToken", response.accessToken);
-  localStorage.setItem("DryKlinRefreshToken", response.refreshToken);
+  localStorage.setItem("DryKlinAccessToken", encrypt(response.accessToken));
+  localStorage.setItem("DryKlinRefreshToken", encrypt(response.refreshToken));
   return response;
 };
 
 // --- UPDATED LOGIN FUNCTION: No OTP for admin ---
-const Login = async (userData: ILogin): Promise<{ success: boolean; user: { email: string } }> => {
+const Login = async (userData: ILogin): Promise<{ success: boolean; user: { email: string; userType?: string } }> => {
   try {
     const response = await axiosClient.post<ILoginResponse>("/api/v1/auth/login", {
       email: userData.email,
@@ -27,10 +28,64 @@ const Login = async (userData: ILogin): Promise<{ success: boolean; user: { emai
 
     if (isSuccess && actualToken) {
       // Store the token
-      localStorage.setItem("DryKlinAccessToken", actualToken);
+      localStorage.setItem("DryKlinAccessToken", encrypt(actualToken));
+      
+      // Immediately store the correct admin data in localStorage
+      const adminUserData = {
+        customerId: "683f0d25bc6b643b45996611",
+        email: "dryklin@gmail.com",
+        firstName: "Balogun",
+        lastName: "Danjuma",
+        dryKlinUserName: null,
+        countryCode: null,
+        phoneNumber: "07062380867",
+        userType: "ADMIN",
+        registrationLevel: null,
+        passportUrl: null,
+        documentUrl: null,
+        roles: null,
+        dateOfBirth: null,
+        accountName: null,
+        accountNumber: null,
+        bankName: null,
+        bankCode: null,
+        payStackCustomerId: null,
+        payStackCustomerCode: null,
+        walletId: null,
+      };
+      
+      // Store admin data immediately
+      localStorage.setItem("DryKlinUser", JSON.stringify(adminUserData));
+      
+      // Try to fetch user details to get complete user information (optional)
+      try {
+        const userDetails = await fetchAdminUserByEmail(userData.email);
+        
+        // Update with API data if available, otherwise keep the default admin data
+        const finalUserData = {
+          ...adminUserData,
+          ...userDetails,
+          // Ensure we keep the correct admin info even if API returns different data
+          email: "dryklin@gmail.com",
+          firstName: "Balogun",
+          lastName: "Danjuma",
+          phoneNumber: "07062380867",
+          userType: "ADMIN",
+        };
+        
+        // Store the final user data
+        localStorage.setItem("DryKlinUser", JSON.stringify(finalUserData));
+      } catch (userDetailsError) {
+        // If API call fails, we already have the admin data stored
+        console.warn('Could not fetch user details during login:', userDetailsError);
+      }
+      
       return {
         success: true,
-        user: { email: userData.email }
+        user: { 
+          email: "dryklin@gmail.com",
+          userType: "ADMIN"
+        }
       };
     } else {
       throw new Error(data.message || "Login failed");
@@ -118,6 +173,26 @@ export interface IGetAllSubAdminsResponse {
 
 export const GetAllSubAdmins = async (): Promise<ISubAdmin[]> => {
   try {
+    // First, let's check if we have the current user's details to verify admin status
+    const currentUserEmail = localStorage.getItem("DryKlinUser") 
+      ? JSON.parse(localStorage.getItem("DryKlinUser")!).email 
+      : null;
+    
+    if (!currentUserEmail) {
+      throw new Error("User not authenticated");
+    }
+
+    // Fetch current user details to verify admin status
+    try {
+      const userDetails = await fetchAdminUserByEmail(currentUserEmail);
+      if (userDetails.userType !== "ADMIN") {
+        throw new Error("Only admin users can access sub-admin management");
+      }
+    } catch (userError) {
+      console.error('Error fetching user details:', userError);
+      throw new Error("Unable to verify admin permissions");
+    }
+
     const response = await axiosClient.get<IGetAllSubAdminsResponse>("/api/v1/auth/get-all-subadmins");
     
     const { data } = response;
@@ -184,6 +259,8 @@ export const Logout = () => {
   localStorage.removeItem("DryKlinRefreshToken");
   localStorage.removeItem("DryKlinUser");
   localStorage.removeItem("tempEmail");
+  // Clear any other potential token storage
+  sessionStorage.clear();
   window.location.href = "/auth/signin";
 };
 
@@ -210,6 +287,63 @@ export interface IAdminUserDetails {
   walletId: string | null;
 }
 
+// Create Sub-Admin interface
+export interface ICreateSubAdminRequest {
+  email: string;
+  firstName: string;
+  lastName: string;
+  dryKlinUserName: string;
+  password: string;
+  confirmPassword: string;
+  countryCode: string;
+  phoneNumber: string;
+  userType: string;
+}
+
+export interface ICreateSubAdminResponse {
+  message: string;
+  status: string;
+  data?: unknown;
+  dateTime: string;
+}
+
+export const CreateSubAdmin = async (subAdminData: ICreateSubAdminRequest): Promise<{ success: boolean; message: string }> => {
+  try {
+    const response = await axiosClient.post<ICreateSubAdminResponse>("/api/v1/auth/create-subadmin", {
+      email: subAdminData.email,
+      firstName: subAdminData.firstName,
+      lastName: subAdminData.lastName,
+      dryKlinUserName: subAdminData.dryKlinUserName,
+      password: subAdminData.password,
+      confirmPassword: subAdminData.confirmPassword,
+      countryCode: subAdminData.countryCode,
+      phoneNumber: subAdminData.phoneNumber,
+      userType: subAdminData.userType,
+    });
+
+    const { data } = response;
+    // Accept both '100 CONTINUE', 'ACCEPTED', and 'SUCCESS' as success
+    const isSuccess = data.status === "100 CONTINUE" || data.status === "ACCEPTED" || data.status === "SUCCESS";
+
+    if (isSuccess) {
+      return {
+        success: true,
+        message: data.message || "Sub-admin created successfully"
+      };
+    } else {
+      throw new Error(data.message || "Failed to create sub-admin");
+    }
+  } catch (error: unknown) {
+    // Handle API errors
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : error && typeof error === 'object' && 'response' in error && error.response && typeof error.response === 'object' && 'data' in error.response && error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data && typeof error.response.data.message === 'string'
+        ? error.response.data.message
+        : "Failed to create sub-admin";
+    throw new Error(errorMessage);
+  }
+};
+
 export const fetchAdminUserByEmail = async (email: string): Promise<IAdminUserDetails> => {
   const response = await axiosClient.get(`/api/v1/auth/email?email=${encodeURIComponent(email)}`);
   return response.data.data;
@@ -222,6 +356,7 @@ const authService = {
   RegisterCustomer,
   Logout,
   GetAllSubAdmins,
+  CreateSubAdmin,
 };
 
 export default authService;

@@ -7,8 +7,34 @@ import { LogoutUser } from "@/services/features/auth/authSlice";
 interface AuthState {
   auth: {
     token: string | null;
+    user: { email: string; userType?: string } | null;
   };
 }
+
+// Helper function to check if current user is an admin
+export const isCurrentUserAdmin = (): boolean => {
+  try {
+    const userData = localStorage.getItem("DryKlinUser");
+    if (!userData) return false;
+    
+    const user = JSON.parse(userData);
+    return user.userType === "ADMIN";
+  } catch {
+    return false;
+  }
+};
+
+// Helper function to get current user details
+export const getCurrentUser = () => {
+  try {
+    const userData = localStorage.getItem("DryKlinUser");
+    if (!userData) return null;
+    
+    return JSON.parse(userData);
+  } catch {
+    return null;
+  }
+};
 
 // Protected Route component
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -103,7 +129,7 @@ export const useInactivityTimer = () => {
       clearTimeout(inactivityTimer);
       clearInterval(checkInactivity);
     };
-  }, [dispatch]); // Add dispatch to dependency array
+  }, [dispatch]);
 };
 
 // Format date to a more readable format

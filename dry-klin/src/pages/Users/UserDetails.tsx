@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, PencilIcon, Trash2Icon, MapPinIcon } from 'lucide-react';
-import avatar from "../../assets/images/Avatar.png";
+import { ArrowLeft, PencilIcon, Trash2Icon, MapPinIcon, UserCircle } from 'lucide-react';
 import EditUserModal from '@/components/users/EditUserModal';
 
 interface UserDetailsProps {
@@ -73,7 +72,9 @@ const UserDetails = ({ onBack }: UserDetailsProps) => {
       <div className="bg-white rounded-lg border border-gray-200">
         <div className="p-6">
           <div className="flex items-start gap-4">
-            <img src={avatar} alt="James Adewale" className="w-16 h-16 rounded-full" />
+            <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
+              <UserCircle className="w-10 h-10 text-gray-400" />
+            </div>
             <div className="flex-1">
               <h2 className="text-2xl font-semibold">{userData.firstName} {userData.lastName}</h2>
               <p className="text-sm text-gray-500">ID No.: 01824VA</p>

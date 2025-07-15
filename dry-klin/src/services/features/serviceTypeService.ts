@@ -8,13 +8,9 @@ import { IServiceType, IServiceTypeRequest, IServiceTypesResponse } from "@/type
  */
 export const getAllServiceTypes = async (): Promise<IServiceType[]> => {
   try {
-    console.log('Making API call to /api/service-types/get-all');
     const response = await axiosClient.get("/api/service-types/get-all");
     
-    console.log('API Response:', response);
     const { data } = response;
-    
-    console.log('Response data:', data);
     
     // Handle both response formats:
     // 1. Direct array: [{ "laundryServiceTypeName": "CORPORATE" }]
@@ -31,7 +27,6 @@ export const getAllServiceTypes = async (): Promise<IServiceType[]> => {
       if (responseData.httpStatus === "100 CONTINUE" || responseData.httpStatus === "ACCEPTED" || responseData.httpStatus === "SUCCESS") {
         serviceTypes = Array.isArray(responseData.data) ? responseData.data : [];
       } else {
-        console.error('API returned unsuccessful status:', responseData.httpStatus, responseData.message);
         throw new Error(responseData.message || "Failed to fetch service types");
       }
     } else {
@@ -45,19 +40,8 @@ export const getAllServiceTypes = async (): Promise<IServiceType[]> => {
       id: serviceType.id || serviceType.laundryServiceTypeName // Use laundryServiceTypeName as id if id is not provided
     }));
     
-    console.log('Processed service types:', serviceTypes);
     return serviceTypes;
   } catch (error: unknown) {
-    console.error('getAllServiceTypes error:', error);
-    
-    // Log more details about the error
-    if (error && typeof error === 'object' && 'response' in error) {
-      const axiosError = error as { response?: { status?: number; data?: unknown } };
-      console.error('Error response:', axiosError.response);
-      console.error('Error status:', axiosError.response?.status);
-      console.error('Error data:', axiosError.response?.data);
-    }
-    
     // Handle API errors
     const errorMessage = error instanceof Error 
       ? error.message 
@@ -84,8 +68,6 @@ export const addServiceType = async (serviceTypeData: IServiceTypeRequest): Prom
       throw new Error(data.message || "Failed to add service type");
     }
   } catch (error: unknown) {
-    console.error('addServiceType error:', error);
-    
     // Handle API errors
     const errorMessage = error instanceof Error 
       ? error.message 
@@ -112,8 +94,6 @@ export const updateServiceType = async (id: string, serviceTypeData: Partial<ISe
       throw new Error(data.message || "Failed to update service type");
     }
   } catch (error: unknown) {
-    console.error('updateServiceType error:', error);
-    
     // Handle API errors
     const errorMessage = error instanceof Error 
       ? error.message 
@@ -141,8 +121,6 @@ export const deleteServiceType = async (id: string): Promise<{ success: boolean;
       throw new Error(data.message || "Failed to delete service type");
     }
   } catch (error: unknown) {
-    console.error('deleteServiceType error:', error);
-    
     // Handle API errors
     const errorMessage = error instanceof Error 
       ? error.message 

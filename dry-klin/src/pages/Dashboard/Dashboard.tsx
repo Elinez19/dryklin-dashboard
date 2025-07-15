@@ -1,13 +1,6 @@
-import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import DataTable from '@/components/common/DataTable';
-import avatar from "../../assets/images/avatar.png";
-import NotificationBell from '@/components/common/NotificationBell';
-import { useDispatch } from 'react-redux';
-import { LogoutUser } from '@/services/features/auth/authSlice';
-import { AppDispatch } from '@/store';
-import { useEffect, useState } from 'react';
-import { fetchAdminUserByEmail, IAdminUserDetails } from '@/services/features/auth/authService';
+import UserHeader from '@/components/common/UserHeader';
 
 interface Order extends Record<string, unknown> {
   id: string;
@@ -19,22 +12,7 @@ interface Order extends Record<string, unknown> {
 }
 
 const Dashboard = () => {
-  const navigate = useNavigate();
-  const dispatch = useDispatch<AppDispatch>();
   const unreadCount = 3;
-
-  // Admin profile state
-  const [admin, setAdmin] = useState<IAdminUserDetails | null>(null);
-  const [adminLoading, setAdminLoading] = useState(true);
-  const [adminError, setAdminError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setAdminLoading(true);
-    fetchAdminUserByEmail('dryklin@gmail.com')
-      .then(setAdmin)
-      .catch((err) => setAdminError(err.message || 'Failed to fetch admin'))
-      .finally(() => setAdminLoading(false));
-  }, []);
 
   const stats = [
     { title: 'Total No. of Users', value: '2,105' },
@@ -126,46 +104,11 @@ const Dashboard = () => {
     },
   ];
 
-  const handleLogout = () => {
-    dispatch(LogoutUser());
-    navigate('/auth/signin');
-  };
-
   return (
     <div className="p-2 sm:p-4 md:p-6 space-y-3 md:space-y-6 pt-14 md:pt-6 max-w-[1600px] mx-auto min-h-screen bg-gray-50">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 md:gap-4">
         <h1 className="text-lg sm:text-xl md:text-2xl font-bold">Dashboard</h1>
-        <div className="flex items-center justify-between sm:justify-end gap-2 md:gap-4">
-          <NotificationBell unreadCount={unreadCount} />
-          <div className="flex items-center gap-1.5 md:gap-3">
-            <img
-              src={avatar}
-              alt="Profile"
-              className="w-7 h-7 sm:w-8 sm:h-8 rounded-full"
-            />
-            <div className="hidden sm:block min-w-[120px]">
-              {adminLoading ? (
-                <div className="text-xs text-gray-400">Loading...</div>
-              ) : adminError ? (
-                <div className="text-xs text-red-500">{adminError}</div>
-              ) : admin ? (
-                <>
-                  <div className="text-sm font-medium">{admin.firstName} {admin.lastName}</div>
-                  <div className="text-xs text-gray-500">{admin.email}</div>
-                  {admin.phoneNumber && (
-                    <div className="text-xs text-gray-500">{admin.phoneNumber}</div>
-                  )}
-                </>
-              ) : null}
-            </div>
-          </div>
-          <button 
-            onClick={handleLogout}
-            className="text-red-500 hover:text-red-600 text-xs sm:text-sm font-medium"
-          >
-            Log Out
-          </button>
-        </div>
+        <UserHeader unreadCount={unreadCount} />
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 md:gap-6">

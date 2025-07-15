@@ -36,7 +36,23 @@ export const LogoutUser = createAsyncThunk("auth/logout", async () => {
 export const authSlice = createSlice({
   name: "auth",
   initialState: {
-    user: localStorage.getItem("DryKlinUser") ? JSON.parse(localStorage.getItem("DryKlinUser")!) : null,
+    user: (() => {
+      try {
+        const storedUser = localStorage.getItem("DryKlinUser");
+        if (storedUser) {
+          const parsedUser = JSON.parse(storedUser);
+          // Return the email and userType for Redux state
+          return {
+            email: parsedUser.email || "dryklin@gmail.com",
+            userType: parsedUser.userType || "ADMIN"
+          };
+        }
+        return null;
+      } catch (error) {
+        console.error('Error parsing stored user data:', error);
+        return null;
+      }
+    })(),
     token: localStorage.getItem("DryKlinAccessToken"),
     isLoading: false,
     isSuccess: false,
@@ -59,8 +75,12 @@ export const authSlice = createSlice({
       .addCase(LoginUser.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isSuccess = true;
-        state.user = action.payload.user;
+        state.user = {
+          email: action.payload.user.email,
+          userType: action.payload.user.userType || "ADMIN"
+        };
         state.token = localStorage.getItem("DryKlinAccessToken");
+        // The complete user data is already stored in localStorage by the login function
       })
       .addCase(LoginUser.rejected, (state, action) => {
         state.isLoading = false;
@@ -85,6 +105,8 @@ export const authSlice = createSlice({
       .addCase(LogoutUser.fulfilled, (state) => {
         state.user = null;
         state.token = null;
+        // Clear user data from localStorage
+        localStorage.removeItem("DryKlinUser");
       });
   },
 });

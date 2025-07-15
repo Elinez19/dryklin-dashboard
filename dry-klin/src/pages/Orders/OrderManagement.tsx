@@ -1,13 +1,14 @@
-import { useState } from 'react';
-import { SearchIcon, ChevronDownIcon } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { SearchIcon, ChevronDownIcon, CalendarIcon } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import avatar from "../../assets/images/Avatar.png";
-import NotificationBell from '@/components/common/NotificationBell';
+import { Button } from '@/components/ui/button';
+import UserHeader from '@/components/common/UserHeader';
 import OrderDetailsModal from './OrderDetailsModal';
 import { useOrders } from '@/hooks/useOrders';
 import { IOrder } from '@/types/dashboard_types';
@@ -18,9 +19,33 @@ const OrderManagement = () => {
   const [statusFilter, setStatusFilter] = useState('All');
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'all-orders' | 'order-history'>('all-orders');
   const unreadCount = 3;
 
-  const { orders: apiOrders, loading, error, updateOrderStatus } = useOrders();
+  const { 
+    orders: apiOrders, 
+    orderHistory, 
+    loading, 
+    error, 
+    updateOrderStatus, 
+    fetchOrders, 
+    fetchOrderHistory 
+  } = useOrders();
+
+  // Load initial data when component mounts
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
+
+  // Handle tab change
+  const handleTabChange = (tab: 'all-orders' | 'order-history') => {
+    setActiveTab(tab);
+    if (tab === 'all-orders') {
+      fetchOrders();
+    } else {
+      fetchOrderHistory();
+    }
+  };
 
   // Filter orders based on status and search query
   const filterOrders = (ordersData: IOrder[]) => {
@@ -45,7 +70,8 @@ const OrderManagement = () => {
       filtered = filtered.filter(order => 
         order.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         order.customerEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        order.id.toLowerCase().includes(searchQuery.toLowerCase())
+        order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        order.serviceType.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
     
@@ -61,13 +87,19 @@ const OrderManagement = () => {
     try {
       await updateOrderStatus(orderId, updates);
       setIsDetailsModalOpen(false);
+      // Refresh data after update
+      if (activeTab === 'all-orders') {
+        fetchOrders();
+      } else {
+        fetchOrderHistory();
+      }
     } catch (error) {
       console.error('Error updating order:', error);
     }
   };
 
-  // Use API orders data
-  const orders = apiOrders;
+  // Use appropriate data based on active tab
+  const orders = activeTab === 'all-orders' ? apiOrders : orderHistory;
 
   const getStatusStyle = (status: IOrder['orderStatus']) => {
     switch (status) {
@@ -100,12 +132,37 @@ const OrderManagement = () => {
     }
   };
 
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return 'N/A';
+      }
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return 'N/A';
+    }
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-NG', {
+      style: 'currency',
+      currency: 'NGN'
+    }).format(amount);
+  };
+
   // Show loading state
   if (loading) {
     return (
       <div className="p-0">
         <div className="flex items-center justify-center min-h-screen">
-          <div className="text-lg">Loading orders...</div>
+          <div className="text-lg">Loading {activeTab === 'all-orders' ? 'orders' : 'order history'}...</div>
         </div>
       </div>
     );
@@ -115,12 +172,20 @@ const OrderManagement = () => {
   if (error) {
     return (
       <div className="p-0">
-        <div className="flex items-center justify-center min-h-screen">
+        <div className="flex flex-col items-center justify-center min-h-screen space-y-4">
           <div className="text-lg text-red-600">Error: {error}</div>
+          <Button 
+            onClick={() => activeTab === 'all-orders' ? fetchOrders() : fetchOrderHistory()}
+            variant="outline"
+          >
+            Try Again
+          </Button>
         </div>
       </div>
     );
   }
+
+  const filteredOrders = filterOrders(orders);
 
   return (
     <div className="p-0">
@@ -130,18 +195,38 @@ const OrderManagement = () => {
           <span className="px-2 py-1 text-xs font-medium bg-[#FF5C00] bg-opacity-10 text-white rounded">84 F202</span>
         </div>
         <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-6">
-          <NotificationBell unreadCount={unreadCount} />
-          <div className="flex items-center gap-1.5 sm:gap-3">
-            <img
-              src={avatar}
-              alt="Profile"
-              className="w-7 h-7 sm:w-8 sm:h-8 rounded-full"
-            />
-            <div className="hidden sm:block">
-              <div className="text-sm font-medium">Olivia Rhye</div>
-              <div className="text-xs text-gray-500">olivia@untitledui.com</div>
-            </div>
-          </div>
+          <Link to="/pending-orders">
+            <Button variant="outline" className="flex items-center gap-2 text-sm px-3 py-2">
+              <span>Pending Orders</span>
+            </Button>
+          </Link>
+          <UserHeader unreadCount={unreadCount} />
+        </div>
+      </div>
+
+      {/* Tab Navigation */}
+      <div className="px-2 sm:px-4 md:px-6 mb-4">
+        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
+          <button
+            onClick={() => handleTabChange('all-orders')}
+            className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              activeTab === 'all-orders'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            All Orders
+          </button>
+          <button
+            onClick={() => handleTabChange('order-history')}
+            className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              activeTab === 'order-history'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Order History
+          </button>
         </div>
       </div>
 
@@ -152,7 +237,7 @@ const OrderManagement = () => {
               <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <input
                 type="text"
-                placeholder="Search here"
+                placeholder={`Search ${activeTab === 'all-orders' ? 'orders' : 'order history'}...`}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg w-full text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20"
@@ -163,13 +248,25 @@ const OrderManagement = () => {
               <div className="text-xs sm:text-sm hidden sm:block">Filter:</div>
               <DropdownMenu>
                 <DropdownMenuTrigger className="flex items-center gap-2 px-3 sm:px-4 py-2 border border-gray-200 rounded-lg text-xs sm:text-sm">
-                  {dateFilter}
+                  <CalendarIcon className="h-4 w-4" />
+                  {activeTab === 'order-history' ? 'All Time' : dateFilter}
                   <ChevronDownIcon className="h-4 w-4" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => setDateFilter('Last 7 Days')}>Last 7 Days</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setDateFilter('Last 30 Days')}>Last 30 Days</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setDateFilter('Last 90 Days')}>Last 90 Days</DropdownMenuItem>
+                  {activeTab === 'order-history' ? (
+                    <>
+                      <DropdownMenuItem onClick={() => setDateFilter('All Time')}>All Time</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setDateFilter('Last 7 Days')}>Last 7 Days</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setDateFilter('Last 30 Days')}>Last 30 Days</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setDateFilter('Last 90 Days')}>Last 90 Days</DropdownMenuItem>
+                    </>
+                  ) : (
+                    <>
+                      <DropdownMenuItem onClick={() => setDateFilter('Last 7 Days')}>Last 7 Days</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setDateFilter('Last 30 Days')}>Last 30 Days</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setDateFilter('Last 90 Days')}>Last 90 Days</DropdownMenuItem>
+                    </>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
 
@@ -183,96 +280,119 @@ const OrderManagement = () => {
                   <DropdownMenuItem onClick={() => setStatusFilter('In Progress')}>In Progress</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setStatusFilter('Completed')}>Completed</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setStatusFilter('Cancelled')}>Cancelled</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setStatusFilter('Successful')}>Successful</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setStatusFilter('Pending')}>Pending</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
           </div>
 
           <div className="relative">
-            <div className="sm:hidden overflow-x-auto -mx-2">
-              <div className="inline-block min-w-full align-middle">
-                <div className="overflow-hidden">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead>
-                      <tr>
-                        <th className="w-4 p-2">
-                          <input type="checkbox" className="rounded border-gray-300" />
-                        </th>
-                        <th className="px-2 py-3 text-left text-xs font-medium text-gray-500">Order ID</th>
-                        <th className="px-2 py-3 text-left text-xs font-medium text-gray-500">Customer Name</th>
-                        <th className="px-2 py-3 text-left text-xs font-medium text-gray-500">Order Status</th>
-                        <th className="px-2 py-3 text-left text-xs font-medium text-gray-500"></th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      {filterOrders(orders).map((order, index) => (
-                        <tr key={index} className="hover:bg-gray-50">
-                          <td className="w-4 p-2">
-                            <input type="checkbox" className="rounded border-gray-300" />
-                          </td>
-                          <td className="px-2 py-2 text-xs whitespace-nowrap">{order.id}</td>
-                          <td className="px-2 py-2 text-xs whitespace-nowrap">{order.customerName}</td>
-                          <td className="px-2 py-2 text-xs whitespace-nowrap">
-                            <span className={`inline-flex px-2 py-1 rounded-full text-xs ${getStatusStyle(order.orderStatus)}`}>
-                              {order.orderStatus}
-                            </span>
-                          </td>
-                          <td className="px-2 py-2 text-xs whitespace-nowrap">
-                            <button
-                              onClick={() => handleViewDetails(order)}
-                              className="text-[#FF5C00] hover:text-[#FF5C00]/80 text-xs font-medium"
-                            >
-                              View Details
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+            {/* Mobile Table */}
+            <div className="sm:hidden">
+              <div className="space-y-3">
+                {filteredOrders.map((order, index) => (
+                  <div key={index} className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <input type="checkbox" className="rounded border-gray-300" />
+                        <span className="text-sm font-medium text-gray-900">#{order.id.slice(-8)}</span>
+                      </div>
+                      <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${getStatusStyle(order.orderStatus)}`}>
+                        {order.orderStatus.replace('_', ' ')}
+                      </span>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-xs text-gray-500">Customer:</span>
+                        <span className="text-xs text-gray-900 font-medium">{order.customerName}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-xs text-gray-500">Email:</span>
+                        <span className="text-xs text-gray-900 truncate ml-2">{order.customerEmail}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-xs text-gray-500">Service:</span>
+                        <span className="text-xs text-gray-900">{order.serviceType}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-xs text-gray-500">Amount:</span>
+                        <span className="text-xs text-gray-900 font-medium">{formatCurrency(order.totalAmount)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-xs text-gray-500">Payment:</span>
+                        <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${getPaymentStatusStyle(order.paymentStatus)}`}>
+                          {order.paymentStatus}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-xs text-gray-500">Date:</span>
+                        <span className="text-xs text-gray-900">{formatDate(order.orderDate)}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-end">
+                      <button
+                        onClick={() => handleViewDetails(order)}
+                        className="text-blue-600 hover:text-blue-800 text-xs font-medium"
+                      >
+                        View Details
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
+            {/* Desktop Table */}
             <div className="hidden sm:block">
-              <table className="min-w-full divide-y divide-gray-200">
+              <table className="w-full">
                 <thead>
-                  <tr>
-                    <th className="w-4 p-4">
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
                       <input type="checkbox" className="rounded border-gray-300" />
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Order ID</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Customer Name</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Email address</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Service Type</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Order Status</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Payment Status</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-500"></th>
+                    <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+                    <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                    <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Service</th>
+                    <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                    <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Payment</th>
+                    <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {filterOrders(orders).map((order, index) => (
+                  {filteredOrders.map((order, index) => (
                     <tr key={index} className="hover:bg-gray-50">
-                      <td className="w-4 p-4">
+                      <td className="py-4 px-4">
                         <input type="checkbox" className="rounded border-gray-300" />
                       </td>
-                      <td className="px-4 py-4 text-sm whitespace-nowrap">{order.id}</td>
-                      <td className="px-4 py-4 text-sm whitespace-nowrap">{order.customerName}</td>
-                                              <td className="px-4 py-4 text-sm whitespace-nowrap">{order.customerEmail}</td>
-                      <td className="px-4 py-4 text-sm whitespace-nowrap">{order.serviceType}</td>
-                      <td className="px-4 py-4 text-sm whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 rounded-full text-xs ${getStatusStyle(order.orderStatus)}`}>
-                          {order.orderStatus}
+                      <td className="py-4 px-4 text-sm font-medium text-gray-900">#{order.id.slice(-8)}</td>
+                      <td className="py-4 px-4">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">{order.customerName}</div>
+                          <div className="text-sm text-gray-500">{order.customerEmail}</div>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4 text-sm text-gray-900">{order.serviceType}</td>
+                      <td className="py-4 px-4 text-sm font-medium text-gray-900">{formatCurrency(order.totalAmount)}</td>
+                      <td className="py-4 px-4">
+                        <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${getStatusStyle(order.orderStatus)}`}>
+                          {order.orderStatus.replace('_', ' ')}
                         </span>
                       </td>
-                      <td className="px-4 py-4 text-sm whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 rounded-full text-xs ${getPaymentStatusStyle(order.paymentStatus)}`}>
+                      <td className="py-4 px-4">
+                        <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${getPaymentStatusStyle(order.paymentStatus)}`}>
                           {order.paymentStatus}
                         </span>
                       </td>
-                      <td className="px-4 py-4 text-sm whitespace-nowrap">
+                      <td className="py-4 px-4 text-sm text-gray-500">{formatDate(order.orderDate)}</td>
+                      <td className="py-4 px-4">
                         <button
                           onClick={() => handleViewDetails(order)}
-                          className="text-[#FF5C00] hover:text-[#FF5C00]/80 text-sm font-medium"
+                          className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                         >
                           View Details
                         </button>
@@ -283,33 +403,18 @@ const OrderManagement = () => {
               </table>
             </div>
           </div>
-
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
-            <button className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 text-xs sm:text-sm text-gray-600 hover:text-gray-800 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-              <span>Previous</span>
-            </button>
-            <div className="flex items-center gap-1 overflow-x-auto">
-              <button className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm bg-orange-50 text-[#FF5C00] rounded-lg border border-orange-200">1</button>
-              <button className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm text-gray-600 hover:text-gray-800 rounded-lg border border-transparent hover:border-gray-200 hover:bg-gray-50 transition-colors">2</button>
-              <button className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm text-gray-600 hover:text-gray-800 rounded-lg border border-transparent hover:border-gray-200 hover:bg-gray-50 transition-colors">3</button>
-              <span className="px-2 text-gray-400">...</span>
-              <button className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm text-gray-600 hover:text-gray-800 rounded-lg border border-transparent hover:border-gray-200 hover:bg-gray-50 transition-colors">8</button>
-              <button className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm text-gray-600 hover:text-gray-800 rounded-lg border border-transparent hover:border-gray-200 hover:bg-gray-50 transition-colors">9</button>
-              <button className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm text-gray-600 hover:text-gray-800 rounded-lg border border-transparent hover:border-gray-200 hover:bg-gray-50 transition-colors">10</button>
-            </div>
-            <button className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 text-xs sm:text-sm text-gray-600 hover:text-gray-800 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-              <span>Next</span>
-            </button>
-          </div>
         </div>
       </div>
 
-      <OrderDetailsModal
-        isOpen={isDetailsModalOpen}
-        onClose={() => setIsDetailsModalOpen(false)}
-        order={selectedOrder}
-        onUpdate={handleUpdateOrder}
-      />
+      {/* Order Details Modal */}
+      {selectedOrder && (
+        <OrderDetailsModal
+          order={selectedOrder}
+          isOpen={isDetailsModalOpen}
+          onClose={() => setIsDetailsModalOpen(false)}
+          onUpdate={handleUpdateOrder}
+        />
+      )}
     </div>
   );
 };

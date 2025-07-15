@@ -12,6 +12,7 @@ import { IServiceType } from '@/types/dashboard_types';
 import Loader from '@/components/common/Loader';
 import { useNavigate } from 'react-router-dom';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
+import { MoreDotIcon } from '@/assets/icons';
 
 const Services: React.FC = () => {
   const {
@@ -42,9 +43,10 @@ const Services: React.FC = () => {
     navigate('/service-types/add');
   };
 
-  const handleEditClick = (serviceType: IServiceType) => {
+  const handleEditClick = (_serviceType: IServiceType) => {
     // Edit functionality will be implemented in future task
-    console.log("Edit service type:", serviceType);
+    // TODO: Implement edit functionality for service type
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   };
 
   const handleDeleteClick = (id: string) => {
@@ -182,23 +184,33 @@ const Services: React.FC = () => {
                               </span>
                             </td>
                             <td className="px-4 py-4 text-sm whitespace-nowrap">
-                              <div className="flex gap-2">
-                                <Button
-                                  variant="outline"
-                                  onClick={() => handleEditClick(serviceType)}
-                                  className="text-blue-600 border-blue-600 hover:bg-blue-50"
-                                >
-                                  <Edit size={14} className="mr-1" /> Edit
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  onClick={() => handleDeleteClick(serviceType.id || serviceType.name || '')}
-                                  className="text-red-600 border-red-600 hover:bg-red-50"
-                                  disabled={deleteLoading}
-                                >
-                                  <Trash2 size={14} className="mr-1" /> Delete
-                                </Button>
-                              </div>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    className="h-8 w-8 p-0 hover:bg-gray-100"
+                                  >
+                                    <MoreDotIcon className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem
+                                    onClick={() => handleEditClick(serviceType)}
+                                    className="text-blue-600"
+                                  >
+                                    <Edit size={14} className="mr-2" />
+                                    Edit
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => handleDeleteClick(serviceType.id || serviceType.name || '')}
+                                    className="text-red-600"
+                                    disabled={deleteLoading}
+                                  >
+                                    <Trash2 size={14} className="mr-2" />
+                                    Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </td>
                           </tr>
                         ))

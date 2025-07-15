@@ -1,10 +1,10 @@
-import { EyeCloseIcon, EyeIcon } from "../../assets/icons";
 import logo1 from "../../assets/images/logo-1.png";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import useSignInForm from "@/hooks/Form-hooks/useSignInForm";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "../ui/card";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function SignInForm() {
   const {showPassword, setShowPassword, formik, isLoading} = useSignInForm()
@@ -80,9 +80,9 @@ export default function SignInForm() {
                   className="absolute right-3 top-1/2 -translate-y-1/2"
                 >
                   {showPassword ? (
-                    <EyeIcon className="w-5 h-5 text-gray-500" />
+                    <Eye className="w-5 h-5 text-orange-600" />
                   ) : (
-                    <EyeCloseIcon className="w-5 h-5 text-gray-500" />
+                    <EyeOff className="w-5 h-5 text-orange-600" />
                   )}
                 </button>
               </div>
