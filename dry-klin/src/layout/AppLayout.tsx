@@ -30,6 +30,7 @@ const menuItems: MenuItem[] = [
   { icon: UserIcon, label: 'User Management', path: '/users' },
   { icon: PieChartIcon, label: 'Analytics & Reports', path: '/analytics' },
   { icon: GroupIcon, label: 'Sub-admins', path: '/admins' },
+  { icon: BoxIcon, label: 'Services', path: '/services' },
 ];
 
 const AppLayout = ({ children }: AppLayoutProps) => {

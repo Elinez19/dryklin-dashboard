@@ -34,8 +34,9 @@ export interface IServicePartnersResponse {
 
 // Service Type Types
 export interface IServiceType {
-  id: string;
-  name: string;
+  id?: string;
+  name?: string;
+  laundryServiceTypeName?: string;
   description?: string;
   price?: number;
   status?: 'ACTIVE' | 'INACTIVE';
@@ -44,7 +45,7 @@ export interface IServiceType {
 }
 
 export interface IServiceTypeRequest {
-  name: string;
+  laundryServiceTypeName: string;
   description?: string;
   price?: number;
 }

@@ -1,24 +1,62 @@
 import { axiosClient } from "@/services/api/axiosClient";
 import { IServiceType, IServiceTypeRequest, IServiceTypesResponse } from "@/types/dashboard_types";
 
+
 /**
  * Get all service types
  * @returns Promise with array of service types
  */
 export const getAllServiceTypes = async (): Promise<IServiceType[]> => {
   try {
-    const response = await axiosClient.get<IServiceTypesResponse>("/api/service-types/get-all");
+    console.log('Making API call to /api/service-types/get-all');
+    const response = await axiosClient.get("/api/service-types/get-all");
     
+    console.log('API Response:', response);
     const { data } = response;
     
-    // Check if the request was successful
-    if (data.httpStatus === "100 CONTINUE" || data.httpStatus === "ACCEPTED" || data.httpStatus === "SUCCESS") {
-      return Array.isArray(data.data) ? data.data : [];
+    console.log('Response data:', data);
+    
+    // Handle both response formats:
+    // 1. Direct array: [{ "laundryServiceTypeName": "CORPORATE" }]
+    // 2. Wrapped response: { data: [...], httpStatus: "SUCCESS", ... }
+    
+    let serviceTypes: IServiceType[] = [];
+    
+    if (Array.isArray(data)) {
+      // Direct array response
+      serviceTypes = data;
+    } else if (data && typeof data === 'object' && 'data' in data) {
+      // Wrapped response format
+      const responseData = data as IServiceTypesResponse;
+      if (responseData.httpStatus === "100 CONTINUE" || responseData.httpStatus === "ACCEPTED" || responseData.httpStatus === "SUCCESS") {
+        serviceTypes = Array.isArray(responseData.data) ? responseData.data : [];
+      } else {
+        console.error('API returned unsuccessful status:', responseData.httpStatus, responseData.message);
+        throw new Error(responseData.message || "Failed to fetch service types");
+      }
     } else {
-      throw new Error(data.message || "Failed to fetch service types");
+      throw new Error("Invalid response format from server");
     }
+    
+    // Process service types to ensure consistent format
+    serviceTypes = serviceTypes.map(serviceType => ({
+      ...serviceType,
+      name: serviceType.laundryServiceTypeName || serviceType.name,
+      id: serviceType.id || serviceType.laundryServiceTypeName // Use laundryServiceTypeName as id if id is not provided
+    }));
+    
+    console.log('Processed service types:', serviceTypes);
+    return serviceTypes;
   } catch (error: unknown) {
     console.error('getAllServiceTypes error:', error);
+    
+    // Log more details about the error
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response?: { status?: number; data?: unknown } };
+      console.error('Error response:', axiosError.response);
+      console.error('Error status:', axiosError.response?.status);
+      console.error('Error data:', axiosError.response?.data);
+    }
     
     // Handle API errors
     const errorMessage = error instanceof Error 
@@ -30,20 +68,14 @@ export const getAllServiceTypes = async (): Promise<IServiceType[]> => {
   }
 };
 
-/**
- * Add a new service type
- * @param serviceTypeData Service type data to add
- * @returns Promise with the added service type
- */
+
 export const addServiceType = async (serviceTypeData: IServiceTypeRequest): Promise<IServiceType> => {
   try {
     const response = await axiosClient.post<IServiceTypesResponse>("/api/service-types/add-service-type", serviceTypeData);
     
     const { data } = response;
     
-    // Check if the request was successful
     if (data.httpStatus === "100 CONTINUE" || data.httpStatus === "ACCEPTED" || data.httpStatus === "SUCCESS") {
-      // If data.data is an array, return the first item, otherwise return data.data
       if (Array.isArray(data.data)) {
         return data.data[0];
       }
@@ -64,21 +96,14 @@ export const addServiceType = async (serviceTypeData: IServiceTypeRequest): Prom
   }
 };
 
-/**
- * Update an existing service type
- * @param id Service type ID
- * @param serviceTypeData Service type data to update
- * @returns Promise with the updated service type
- */
+
 export const updateServiceType = async (id: string, serviceTypeData: Partial<IServiceTypeRequest>): Promise<IServiceType> => {
   try {
     const response = await axiosClient.put<IServiceTypesResponse>(`/api/service-types/${id}`, serviceTypeData);
     
     const { data } = response;
     
-    // Check if the request was successful
     if (data.httpStatus === "100 CONTINUE" || data.httpStatus === "ACCEPTED" || data.httpStatus === "SUCCESS") {
-      // If data.data is an array, return the first item, otherwise return data.data
       if (Array.isArray(data.data)) {
         return data.data[0];
       }
@@ -99,11 +124,7 @@ export const updateServiceType = async (id: string, serviceTypeData: Partial<ISe
   }
 };
 
-/**
- * Delete a service type
- * @param id Service type ID
- * @returns Promise with success message
- */
+
 export const deleteServiceType = async (id: string): Promise<{ success: boolean; message: string }> => {
   try {
     const response = await axiosClient.delete<IServiceTypesResponse>(`/api/service-types/${id}`);

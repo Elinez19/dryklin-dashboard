@@ -28,10 +28,11 @@ const ServiceTypeList: React.FC<ServiceTypeListProps> = ({
     if (!searchQuery) return serviceTypes;
     
     const lowercaseQuery = searchQuery.toLowerCase();
-    return serviceTypes.filter(serviceType => 
-      serviceType.name.toLowerCase().includes(lowercaseQuery) || 
-      (serviceType.description && serviceType.description.toLowerCase().includes(lowercaseQuery))
-    );
+    return serviceTypes.filter(serviceType => {
+      const name = serviceType.name || serviceType.laundryServiceTypeName || '';
+      return name.toLowerCase().includes(lowercaseQuery) || 
+        (serviceType.description && serviceType.description.toLowerCase().includes(lowercaseQuery));
+    });
   }, [serviceTypes, searchQuery]);
 
   if (loading) {
@@ -86,15 +87,15 @@ const ServiceTypeList: React.FC<ServiceTypeListProps> = ({
         </span>}
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredServiceTypes.map((serviceType) => (
+        {filteredServiceTypes.map((serviceType, index) => (
           <Card 
-            key={serviceType.id} 
+            key={serviceType.id || serviceType.name || index} 
             className={`overflow-hidden hover:shadow-md transition-shadow ${onSelect ? 'cursor-pointer' : ''}`}
             onClick={onSelect ? () => onSelect(serviceType) : undefined}
           >
             <CardHeader className="bg-gray-50 border-b border-gray-100 py-3">
               <div className="flex justify-between items-center">
-                <CardTitle className="text-base font-medium">{serviceType.name}</CardTitle>
+                <CardTitle className="text-base font-medium">{serviceType.name || serviceType.laundryServiceTypeName}</CardTitle>
                 <Badge variant={serviceType.status === "ACTIVE" ? "default" : "secondary"}>
                   {serviceType.status || "ACTIVE"}
                 </Badge>

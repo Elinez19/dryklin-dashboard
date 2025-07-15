@@ -106,11 +106,11 @@ const ServiceTypes: React.FC = () => {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {serviceTypes.map((serviceType) => (
-            <Card key={serviceType.id} className="overflow-hidden">
+          {serviceTypes.map((serviceType, index) => (
+            <Card key={serviceType.id || serviceType.name || index} className="overflow-hidden">
               <CardHeader className="bg-gray-50 border-b border-gray-100">
                 <div className="flex justify-between items-center">
-                  <CardTitle className="text-lg font-medium">{serviceType.name}</CardTitle>
+                  <CardTitle className="text-lg font-medium">{serviceType.name || serviceType.laundryServiceTypeName}</CardTitle>
                   <Badge variant={serviceType.status === "ACTIVE" ? "default" : "secondary"}>
                     {serviceType.status || "ACTIVE"}
                   </Badge>
@@ -142,7 +142,7 @@ const ServiceTypes: React.FC = () => {
                     </Button>
                     <Button
                       variant="outline"
-                      onClick={() => handleDeleteClick(serviceType.id)}
+                      onClick={() => handleDeleteClick(serviceType.id || serviceType.name || '')}
                       className="text-red-600 border-red-600 hover:bg-red-50"
                       disabled={deleteLoading}
                     >

@@ -161,7 +161,7 @@ const OrderManagement = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 p-2 sm:p-4 md:p-6 mb-4 sm:mb-8">
         <div className="flex items-center gap-2">
           <h1 className="text-lg sm:text-xl md:text-2xl font-semibold">Order Management</h1>
-          <span className="px-2 py-1 text-xs font-medium bg-[#FF5C00] bg-opacity-10 text-[#FF5C00] rounded">84 F202</span>
+          <span className="px-2 py-1 text-xs font-medium bg-[#FF5C00] bg-opacity-10 text-white rounded">84 F202</span>
         </div>
         <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-6">
           <NotificationBell unreadCount={unreadCount} />
