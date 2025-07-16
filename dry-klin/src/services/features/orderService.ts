@@ -233,33 +233,101 @@ export const createPendingOrder = async (orderData: IPendingOrderRequest): Promi
 };
 
 /**
- * Confirm an order
+ * Confirm an order with retry mechanism
  * @param orderId - The ID of the order to confirm
+ * @param retries - Number of retry attempts (default: 1)
  * @returns Promise with confirmed order data
  */
-export const confirmOrder = async (orderId: string): Promise<IOrder> => {
-  try {
-    const response = await axiosClient.post<IOrdersResponse>(`/api/v1/laundry/confirm-order/${orderId}`);
-    
-    const { data } = response;
-    
-    if (data.httpStatus === "100 CONTINUE" || data.httpStatus === "ACCEPTED" || data.httpStatus === "SUCCESS") {
-      if (Array.isArray(data.data)) {
-        return data.data[0];
+export const confirmOrder = async (orderId: string, retries: number = 1): Promise<IOrder> => {
+  const attemptConfirm = async (attempt: number): Promise<IOrder> => {
+    try {
+      // Use PUT method for confirm order endpoint
+      const response = await axiosClient.put<IOrdersResponse>(`/api/v1/laundry/confirm-order/${orderId}`);
+      
+      const { data } = response;
+      
+      // Handle both response formats:
+      // 1. Direct order object: { id: "0000004", customerId: "...", ... }
+      // 2. Wrapped response: { httpStatus: "SUCCESS", data: { order object } }
+      
+      if (data && typeof data === 'object') {
+        // Check if it's a direct order object (has id, customerId, etc.)
+        if ('id' in data && 'customerId' in data && 'sessionId' in data) {
+          return data as unknown as IOrder;
+        }
+        
+        // Check if it's a wrapped response
+        if ('httpStatus' in data && 'data' in data) {
+          const responseData = data as IOrdersResponse;
+          if (responseData.httpStatus === "100 CONTINUE" || responseData.httpStatus === "ACCEPTED" || responseData.httpStatus === "SUCCESS") {
+            if (Array.isArray(responseData.data)) {
+              return responseData.data[0] as IOrder;
+            }
+            return responseData.data as IOrder;
+          } else {
+            throw new Error(responseData.message || "Failed to confirm order");
+          }
+        }
       }
-      return data.data as IOrder;
-    } else {
-      throw new Error(data.message || "Failed to confirm order");
+      
+      // If we get here, the response format is unexpected
+      throw new Error("Unexpected response format from server");
+    } catch (error: unknown) {
+      // Enhanced error handling for better debugging
+      let errorMessage = "Failed to confirm order";
+      let shouldRetry = false;
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { 
+          response?: { 
+            status: number; 
+            data?: { message?: string } 
+          };
+          code?: string;
+          message?: string;
+        };
+        const response = axiosError.response;
+        
+        if (response) {
+          if (response.status === 500) {
+            errorMessage = "Server error: The server encountered an internal error while processing your request. Please try again later.";
+            shouldRetry = attempt < retries; // Retry on 500 errors
+          } else if (response.status === 404) {
+            errorMessage = "Order not found: The specified order could not be found.";
+          } else if (response.status === 400) {
+            errorMessage = response.data?.message || "Bad request: Invalid order data.";
+          } else if (response.status === 403) {
+            errorMessage = "Access denied: You don't have permission to confirm this order.";
+          } else if (response.status === 401) {
+            errorMessage = "Unauthorized: Please log in again.";
+          } else {
+            errorMessage = response.data?.message || `Server error (${response.status}): Please try again.`;
+            shouldRetry = attempt < retries; // Retry on other server errors
+          }
+        } else if (axiosError.code === 'ECONNABORTED') {
+          errorMessage = "Request timeout: The server took too long to respond. Please try again.";
+          shouldRetry = attempt < retries; // Retry on timeout
+        } else if (axiosError.message === 'Network Error') {
+          errorMessage = "Network error: Unable to connect to the server. Please check your internet connection.";
+          shouldRetry = attempt < retries; // Retry on network errors
+        } else {
+          errorMessage = axiosError.message || "An unexpected error occurred.";
+        }
+      }
+      
+      if (shouldRetry) {
+        // Wait 1 second before retrying
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return attemptConfirm(attempt + 1);
+      }
+      
+      throw new Error(errorMessage);
     }
-  } catch (error: unknown) {
-    console.error('confirmOrder error:', error);
-    
-    // Handle API errors
-    const errorMessage = error instanceof Error 
-      ? error.message 
-      : error && typeof error === 'object' && 'response' in error && error.response && typeof error.response === 'object' && 'data' in error.response && error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data && typeof error.response.data.message === 'string'
-        ? error.response.data.message
-        : "Failed to confirm order";
-    throw new Error(errorMessage);
-  }
-}; 
+  };
+  
+  return attemptConfirm(1);
+};
+
+ 

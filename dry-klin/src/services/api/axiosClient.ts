@@ -2,10 +2,13 @@ import { decrypt } from "@/helpers/helpers.encryptDecrypt";
 import { handle_tokens, Logout } from "@/services/features/auth/authService";
 import Axios from "axios";
 
-export const baseURL = "https://dryklin-32408812303f.herokuapp.com";
+// Use proxy in development, direct URL in production
+export const baseURL = import.meta.env.DEV 
+  ? "/api" 
+  : import.meta.env.VITE_API_BASE_URL || "https://dryklin-32408812303f.herokuapp.com";
 
 const axios = Axios.create({
-  baseURL,
+  baseURL: "https://dryklin-32408812303f.herokuapp.com",
   headers: {
     "Content-Type": "application/json",
     "Accept": "application/json",

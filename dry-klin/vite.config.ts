@@ -25,8 +25,8 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      // Proxy for service-partners endpoints
-      '/api/service-partners': {
+      // Proxy all API requests to the Heroku backend
+      '/api': {
         target: 'https://dryklin-32408812303f.herokuapp.com',
         changeOrigin: true,
         secure: false,
@@ -40,18 +40,6 @@ export default defineConfig({
           });
           proxy.on('proxyRes', (proxyRes, req) => {
             console.log('Received Response from:', req.url, proxyRes.statusCode);
-          });
-        },
-      },
-      // General API proxy for other endpoints
-      '/api': {
-        target: 'https://dryklin-32408812303f.herokuapp.com',
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path.replace(/^\/api/, ''),
-        configure: (proxy) => {
-          proxy.on('error', (err) => {
-            console.log('proxy error', err);
           });
         },
       }

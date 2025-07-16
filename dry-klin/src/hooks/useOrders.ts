@@ -104,15 +104,22 @@ export const useOrders = () => {
     }
   }, []);
 
-  const confirmOrderById = useCallback(async (orderId: string) => {
+  const confirmOrderById = useCallback(async (orderId: string, retries: number = 1) => {
     try {
       setLoading(true);
       setError(null);
-      const confirmedOrder = await confirmOrder(orderId);
+      const confirmedOrder = await confirmOrder(orderId, retries);
       
       // Update the orders list with the confirmed order
       setOrders(prevOrders => 
         prevOrders.map(order => 
+          order.id === orderId ? confirmedOrder : order
+        )
+      );
+      
+      // Update order history list with the confirmed order
+      setOrderHistory(prevOrderHistory => 
+        prevOrderHistory.map(order => 
           order.id === orderId ? confirmedOrder : order
         )
       );

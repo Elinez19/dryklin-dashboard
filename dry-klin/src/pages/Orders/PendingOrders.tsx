@@ -14,6 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useOrders } from '@/hooks/useOrders';
 import { IOrder } from '@/types/dashboard_types';
 import OrderDetailsModal from './OrderDetailsModal';
+import { toast } from 'sonner';
 
 const PendingOrders = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -84,11 +85,26 @@ const PendingOrders = () => {
 
   const handleConfirmOrder = async (orderId: string) => {
     try {
-      await confirmOrder(orderId);
+      toast.loading('Confirming order...');
+      const confirmedOrder = await confirmOrder(orderId, 2); // Retry up to 2 times
+      toast.dismiss();
+      toast.success(`Order ${orderId} confirmed successfully! Status: ${confirmedOrder.orderStatus}`);
       setIsDetailsModalOpen(false);
       // Refresh data after confirmation
       fetchPendingOrders();
     } catch (error) {
+      toast.dismiss();
+      const errorMessage = error instanceof Error ? error.message : 'Failed to confirm order';
+      
+      // Show more detailed error information
+      if (errorMessage.includes('Server error')) {
+        toast.error(`${errorMessage} Please contact support if the issue persists.`);
+      } else if (errorMessage.includes('Network error')) {
+        toast.error(`${errorMessage} Please check your internet connection and try again.`);
+      } else {
+        toast.error(errorMessage);
+      }
+      
       console.error('Error confirming order:', error);
     }
   };
