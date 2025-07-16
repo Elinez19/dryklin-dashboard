@@ -5,6 +5,7 @@ import subAdminReducer from "@/services/features/subAdminSlice";
 import servicePartnerReducer from "@/services/features/servicePartnerSlice";
 import serviceTypeReducer from "@/services/features/serviceTypeSlice";
 import agentReducer from "@/services/features/agentService";
+import customerReducer from "@/services/features/customerSlice";
 
 export const store = configureStore({
   reducer: {
@@ -13,6 +14,7 @@ export const store = configureStore({
     servicePartners: servicePartnerReducer,
     serviceTypes: serviceTypeReducer,
     agents: agentReducer,
+    customers: customerReducer,
   },
 });
 

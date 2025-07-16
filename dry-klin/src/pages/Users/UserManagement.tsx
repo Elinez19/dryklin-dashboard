@@ -15,6 +15,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '@/store';
 import { fetchAgents } from '@/services/features/agentService';
 import { fetchServicePartners } from '@/services/features/servicePartnerSlice';
+import { fetchCustomers } from '@/services/features/customerSlice';
 
 
 type UserType = 'customers' | 'service-partners' | 'delivery-agents';
@@ -50,7 +51,17 @@ const UserManagement = () => {
     (state: RootState) => state.agents
   );
 
+  const { customers, customersLoading, customersError } = useSelector(
+    (state: RootState) => state.customers
+  );
+
+  // Debug logging
+  console.log('Customers state:', { customers, customersLoading, customersError });
+
   useEffect(() => {
+    if (activeTab === 'customers') {
+      dispatch(fetchCustomers());
+    }
     if (activeTab === 'delivery-agents') {
       dispatch(fetchAgents());
     }
@@ -67,6 +78,19 @@ const UserManagement = () => {
 
  
   const getTabUsers = () => {
+    if (activeTab === 'customers') {
+      return customers.map((customer) => ({
+        id: customer.id,
+        name: `${customer.firstName} ${customer.lastName}`,
+        email: customer.email,
+        phone: customer.phoneNumber,
+        status: 'ACTIVE', // Default status since it's not in the API response
+        joinDate: '',
+        type: 'Customer',
+        companyName: customer.customerCode,
+        totalOrders: undefined,
+      }));
+    }
     if (activeTab === 'service-partners') {
       return servicePartners.map((sp) => ({
         id: sp.id,
@@ -97,21 +121,38 @@ const UserManagement = () => {
   };
 
   const getStatusStyle = (status: User['status']) => {
-    switch (status) {
+    switch (status.toUpperCase()) {
       case 'ACTIVE':
+      case 'APPROVED':
+      case 'VERIFIED':
         return 'bg-green-100 text-green-800';
       case 'INACTIVE':
-        return 'bg-gray-100 text-gray-800';
+      case 'SUSPENDED':
+      case 'BLOCKED':
+        return 'bg-red-100 text-red-800';
+      case 'PENDING':
+      case 'REVIEW':
+        return 'bg-yellow-100 text-yellow-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
   };
 
   const filteredUsers = getTabUsers().filter(user => {
-    if (statusFilter === 'All') return true;
-    if (statusFilter === 'Active' && user.status === 'ACTIVE') return true;
-    if (statusFilter === 'Inactive' && user.status === 'INACTIVE') return true;
-    return false;
+    // Search filter
+    const searchLower = searchQuery.toLowerCase();
+    const matchesSearch = !searchQuery || 
+      user.name.toLowerCase().includes(searchLower) ||
+      user.email.toLowerCase().includes(searchLower) ||
+      user.phone.toLowerCase().includes(searchLower) ||
+      user.id.toLowerCase().includes(searchLower);
+    
+    // Status filter
+    const matchesStatus = statusFilter === 'All' || 
+      (statusFilter === 'Active' && user.status === 'ACTIVE') ||
+      (statusFilter === 'Inactive' && user.status === 'INACTIVE');
+    
+    return matchesSearch && matchesStatus;
   });
 
   const handleViewDetails = (userId: string) => {
@@ -131,6 +172,29 @@ const UserManagement = () => {
   }
 
   const renderTable = () => {
+    if (activeTab === 'customers') {
+      if (customersLoading) {
+        return (
+          <div className="flex items-center justify-center min-h-[200px]">
+            <span>Loading...</span>
+          </div>
+        );
+      }
+      if (customersError) {
+        return (
+          <div className="flex items-center justify-center min-h-[200px]">
+            <span className="text-red-600">{customersError}</span>
+          </div>
+        );
+      }
+      if (filteredUsers.length === 0) {
+        return (
+          <div className="flex items-center justify-center min-h-[200px]">
+            <span>No Customers Found</span>
+          </div>
+        );
+      }
+    }
     if (activeTab === 'service-partners') {
       if (servicePartnersLoading) {
         return (
@@ -188,6 +252,9 @@ const UserManagement = () => {
                     <input type="checkbox" className="rounded border-gray-300" />
                   </th>
                   <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 w-10">ID</th>
+                  {activeTab === 'customers' && (
+                    <th className="hidden sm:table-cell px-2 py-3 text-left text-xs font-medium text-gray-500 w-24">Customer Code</th>
+                  )}
                   {activeTab === 'service-partners' && (
                     <>
                       <th className="hidden sm:table-cell px-2 py-3 text-left text-xs font-medium text-gray-500 w-24">Company Name</th>
@@ -210,6 +277,9 @@ const UserManagement = () => {
                       <input type="checkbox" className="rounded border-gray-300" />
                     </td>
                     <td className="px-2 py-2 text-xs truncate">{user.id}</td>
+                    {activeTab === 'customers' && (
+                      <td className="hidden sm:table-cell px-2 py-2 text-xs truncate">{user.companyName}</td>
+                    )}
                     {activeTab === 'service-partners' && (
                       <>
                         <td className="hidden sm:table-cell px-2 py-2 text-xs truncate">{user.companyName}</td>
@@ -349,15 +419,7 @@ const UserManagement = () => {
             </div>
           </div>
 
-          {activeTab === 'customers' && (
-            <button
-              className="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 transition-colors"
-              onClick={() => navigate('/auth/customer-registration/new-customer')}
-            >
-              Add Customer
-            </button>
-          )}
-
+          
           {renderTable()}
 
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
