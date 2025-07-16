@@ -12,6 +12,11 @@ const Analytics = () => {
   );
   const unreadCount = 3;
 
+  // Debug logging
+  console.log('Analytics component - analyticsStats:', analyticsStats);
+  console.log('Analytics component - statsLoading:', statsLoading);
+  console.log('Analytics component - statsError:', statsError);
+
   // Fetch analytics data on component mount
   useEffect(() => {
     dispatch(fetchAnalyticsData());
@@ -19,7 +24,7 @@ const Analytics = () => {
 
   // Format numbers with commas
   const formatNumber = (num: number | null | undefined): string => {
-    if (num === null || num === undefined) return '0';
+    if (num === null || num === undefined || isNaN(num)) return '0';
     return num.toLocaleString();
   };
 
@@ -31,6 +36,9 @@ const Analytics = () => {
     { title: 'Completed Orders', value: formatNumber(analyticsStats?.completedOrders) },
     { title: 'Cancelled Orders', value: formatNumber(analyticsStats?.cancelledOrders) },
   ];
+
+  // Debug logging for stats array
+  console.log('Analytics component - stats array:', stats);
 
   return (
     <div className="p-2 md:p-6 space-y-6 pt-14 md:pt-6">

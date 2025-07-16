@@ -36,23 +36,46 @@ export const getAnalyticsData = async (): Promise<IUserStats> => {
     ]);
 
     // Extract data from responses with fallback to 0 if request fails
-    const profileUpdatesPerMonth = profileUpdatesResponse.status === 'fulfilled' ? 
-      (profileUpdatesResponse.value.data?.data || profileUpdatesResponse.value.data || 0) : 0;
-    
-    const ordersPlacedPerMonth = ordersPlacedResponse.status === 'fulfilled' ? 
-      (ordersPlacedResponse.value.data?.data || ordersPlacedResponse.value.data || 0) : 0;
-    
-    const newUsersPerMonth = newUsersResponse.status === 'fulfilled' ? 
-      (newUsersResponse.value.data?.data || newUsersResponse.value.data || 0) : 0;
-    
-    const monthlyLogins = monthlyLoginsResponse.status === 'fulfilled' ? 
-      (monthlyLoginsResponse.value.data?.data || monthlyLoginsResponse.value.data || 0) : 0;
-    
-    const completedOrders = completedOrdersResponse.status === 'fulfilled' ? 
-      (completedOrdersResponse.value.data?.data || completedOrdersResponse.value.data || 0) : 0;
-    
-    const cancelledOrders = cancelledOrdersResponse.status === 'fulfilled' ? 
-      (cancelledOrdersResponse.value.data?.data || cancelledOrdersResponse.value.data || 0) : 0;
+    const extractValue = (response: PromiseSettledResult<{ data: unknown }>): number => {
+      if (response.status !== 'fulfilled') return 0;
+      
+      const data = response.value.data;
+      console.log('Raw response data:', data);
+      
+      // Handle different response formats
+      if (typeof data === 'number') return data;
+      if (typeof data === 'string') return parseInt(data) || 0;
+      if (data && typeof data === 'object') {
+        const dataObj = data as Record<string, unknown>;
+        // If data has a 'data' property
+        if (dataObj.data !== undefined) {
+          const value = dataObj.data;
+          if (typeof value === 'number') return value;
+          if (typeof value === 'string') return parseInt(value) || 0;
+        }
+        // If data has a 'value' property
+        if (dataObj.value !== undefined) {
+          const value = dataObj.value;
+          if (typeof value === 'number') return value;
+          if (typeof value === 'string') return parseInt(value) || 0;
+        }
+        // If data has a 'count' property
+        if (dataObj.count !== undefined) {
+          const value = dataObj.count;
+          if (typeof value === 'number') return value;
+          if (typeof value === 'string') return parseInt(value) || 0;
+        }
+      }
+      
+      return 0;
+    };
+
+    const profileUpdatesPerMonth = extractValue(profileUpdatesResponse);
+    const ordersPlacedPerMonth = extractValue(ordersPlacedResponse);
+    const newUsersPerMonth = extractValue(newUsersResponse);
+    const monthlyLogins = extractValue(monthlyLoginsResponse);
+    const completedOrders = extractValue(completedOrdersResponse);
+    const cancelledOrders = extractValue(cancelledOrdersResponse);
 
     console.log('Analytics data:', {
       profileUpdatesPerMonth,
